@@ -20,5 +20,6 @@ The program requires 5 arguments:
 - Target mesh south side texture directory(.png).")
 - Target mesh east side texture directory(.png).")
 - Target mesh west side texture directory(.png).")
+
 If there is no texture for one specific side, write "None".
 Write all the arguments in the listed order.
