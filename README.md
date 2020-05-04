@@ -13,7 +13,7 @@ Tested on windows 10 and python 3.8.
 - Time, time library
 
 # Running
-Before running, create two folders, one named "temp" and the other "temp_img". These are required for the program to run.
+Before running, create two folders, one named "temp" and the other "temp_img" in the same directory as CraftSlicer.py. These are required for the program to run.
 The program requires 5 arguments:
 - Target mesh directory(.stl).")
 - Target mesh north side texture directory(.png).")
