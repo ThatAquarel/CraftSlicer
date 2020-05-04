@@ -1,6 +1,6 @@
 # CraftSlicer
 A slicer for Minecraft! Turn stl files into worledit schematic files using python 3.8.
-Tested on windows 10. 
+Tested on windows 10 and python 3.8. 
 
 # Dependencies
 - Trimesh, mesh manipulation library
@@ -13,7 +13,7 @@ Tested on windows 10.
 - Time, time library
 
 # Running
-Python 3.8
+Before running, create two folders, one named "temp" and the other "temp_img". These are required for the program to run.
 The program requires 5 arguments:
 - Target mesh directory(.stl).")
 - Target mesh north side texture directory(.png).")
