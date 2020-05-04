@@ -1,6 +1,6 @@
 # CraftSlicer
 A slicer for Minecraft! Turn stl files into worledit schematic files using python 3.8.
-Tested on windows 10 and python 3.8. 
+Tested using Windows 10, Python 3.8 and Minecraft 1.12.2 with forge and worldedit. 
 
 # Dependencies
 - Trimesh, mesh manipulation library
