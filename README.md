@@ -3,14 +3,14 @@ A slicer for Minecraft! Turn stl files into worledit schematic files using pytho
 Tested on windows 10. 
 
 # Dependencies
-Trimesh - mesh manipulation library
-Numpy - array manipulation library
-Pillow - python imaging library
-Nbt - nbt modifiying library
-Os - system
-Sys - system
-Shutil - system
-Time - time library
+- Trimesh, mesh manipulation library
+- Numpy, array manipulation library
+- Pillow, python imaging library
+- Nbt, nbt modifiying library
+- Os, system
+- Sys, system
+- Shutil, system
+- Time, time library
 
 # Running
 Python 3.8
