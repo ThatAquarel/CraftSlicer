@@ -4,11 +4,12 @@ from matplotlib.collections import PolyCollection
 
 
 def obj_mesh(vectors):
-    v = np.unique(
-        np.reshape(vectors, (vectors.shape[0] * vectors.shape[1], vectors.shape[2])), axis=1)
-    f = [[np.argwhere((v == vertex).all(axis=1))[0][0] for vertex in triangle] for triangle in vectors]
+    vertices = [vertex for triangle in vectors for vertex in triangle]
 
-    return v, f
+    i = vectors.shape[0] * 3
+    faces = list(np.linspace(0, i, i, endpoint=False).reshape((vectors.shape[0], 3)).astype(int))
+
+    return vertices, faces
 
 
 def frustum(left, right, bottom, top, z_near, z_far):
@@ -70,13 +71,25 @@ class Render:
         self.press = False
 
         self.fig = figure
-        self.ax = self.fig.add_axes([0, 0, 1, 1], xlim=[-1, +1], ylim=[-1, +1], aspect=1, frameon=False)
+        self.fig.set(facecolor="slategrey")
+        x, y = figure.get_size_inches() * figure.dpi
+        x_lim = x / y
+        self.ax = self.fig.add_axes([0, 0, 1, 1], xlim=[-x_lim, +x_lim], ylim=[-1, +1], frameon=False)
 
         render = self.render(self.theta, self.translate)
-        self.collection = PolyCollection(render[0], closed=True, linewidth=0.1,
-                                         facecolor=render[1], edgecolor="black")
+        # self.collection = PolyCollection(render[0], closed=True, linewidth=0.1,
+        #                                  facecolor=render[1], edgecolor="black")
+        self.collection = PolyCollection(render[0], closed=True, facecolor=render[1])
 
         self.ax.add_collection(self.collection)
+
+    def draw(self, x, y):
+        render = self.render(self.theta, self.translate)
+        x_lim = x / y
+        self.ax.set_xlim(-x_lim, +x_lim)
+        self.collection.set(verts=render[0])
+        self.collection.set(facecolor=render[1])
+        self.fig.canvas.draw_idle()
 
     def on_move(self, event):
         if not self.press or not event.inaxes:
@@ -87,10 +100,11 @@ class Render:
         self.theta[0] = self.theta_[0] + (self.vector_[1] * -100)
         self.theta[2] = self.theta_[2] + (self.vector_[0] * 100)
 
-        render = self.render(self.theta, self.translate)
-        self.collection.set(verts=render[0])
-        self.collection.set(facecolor=render[1])
-        self.fig.canvas.draw_idle()
+        # render = self.render(self.theta, self.translate)
+        # self.collection.set(verts=render[0])
+        # self.collection.set(facecolor=render[1])
+        # self.fig.canvas.draw_idle()
+        self.draw(*self.fig.get_size_inches() * self.fig.dpi)
 
     def on_press(self, event):
         if not event.inaxes or self.press:
@@ -112,19 +126,6 @@ class Render:
     def render(self, rotate_vector, translate_vector):
         v, f = self.V, self.F
 
-        # v = (v - (v.max(0, initial=0) + v.min(0, initial=0)) / 2) / max(v.max(0, initial=0) - v.min(0, initial=0))
-        # mvp = perspective(25, 1, 1, 100) @ translate(translate_vector[0], translate_vector[1],
-        #                                              translate_vector[2]) @ x_rotate(
-        #     rotate_vector[0]) @ y_rotate(rotate_vector[1]) @ z_rotate(rotate_vector[2])
-        # v = np.c_[v, np.ones(len(v))] @ mvp.T
-        # v /= v[:, 3].reshape(-1, 1)
-        # v = v[f]
-        # 
-        # t = v[:, :, :2]
-        # z = -v[:, :, 2].mean(axis=1)
-        # sort = np.argsort(z)
-        # return t[sort, :]
-
         v = (v - (v.max(0, initial=0) + v.min(0, initial=0)) / 2) / max(v.max(0, initial=0) - v.min(0, initial=0))
         mvp = perspective(25, 1, 1, 100) @ translate(translate_vector[0], translate_vector[1],
                                                      translate_vector[2]) @ x_rotate(
@@ -144,15 +145,18 @@ class Render:
 
 
 if __name__ == '__main__':
-    # mesh = stl.mesh.Mesh.from_file(".\\models\\TestHouse.stl")
+    import stl
+
+    mesh = stl.mesh.Mesh.from_file(".\\models\\statue.stl")
+
+    assert len(mesh.vectors) > 3, "Not readable stl"
+    vertices_, faces_ = obj_mesh(mesh.vectors)
+
+    # from models import house
     #
-    # assert len(mesh.vectors) > 3, "Not readable stl"
-    # vertices_, faces_ = obj_mesh(mesh.vectors)
-    from models import house
+    # vertices_, faces_ = house
 
-    vertices_, faces_ = house
-
-    fig = plt.figure(figsize=(6, 6))
+    fig = plt.figure(figsize=(8, 8))
     renderer = Render(vertices_, faces_, fig)
 
     plt.connect('button_press_event', renderer.on_press)

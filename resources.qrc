@@ -1,0 +1,14 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+    <file alias="about.svg">resources/about.svg</file>
+    <file alias="exit.svg">resources/exit.svg</file>
+    <file alias="mirror.svg">resources/mirror.svg</file>
+    <file alias="move.svg">resources/move.svg</file>
+    <file alias="new.svg">resources/new.svg</file>
+    <file alias="open.svg">resources/open.svg</file>
+    <file alias="rotate.svg">resources/rotate.svg</file>
+    <file alias="save.svg">resources/save.svg</file>
+    <file alias="scale.svg">resources/scale.svg</file>
+    <file alias="select.svg">resources/select.svg</file>
+</qresource>
+</RCC>

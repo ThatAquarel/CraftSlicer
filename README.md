@@ -27,3 +27,6 @@ Write all the arguments in the listed order.
 # Examples
 - py -3.8 CraftSlicer.py House.stl Side1.png Side2.png Side3.png Side4.png
 - python CraftSlicer.py Statue.stl Texture1.png None None Texture2.png
+
+https://github.com/rougier/matplotlib-3d/blob/master/simple-cube.py
+https://matplotlib.org/matplotblog/posts/custom-3d-engine/
