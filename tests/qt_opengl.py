@@ -2,6 +2,7 @@ from OpenGL.GL import *
 from OpenGL.GLU import *
 from PyQt5.QtOpenGL import *
 from PyQt5.QtWidgets import *
+from PyQt5.QtGui import *
 
 
 class MainWindow(QWidget):
@@ -17,6 +18,9 @@ class GlWidget(QGLWidget):
     def __init__(self, parent):
         QGLWidget.__init__(self, parent)
         self.setMinimumSize(640, 480)
+
+    def mouseMoveEvent(self, a0: QMouseEvent) -> None:
+        print("%i %i" % (a0.x(), a0.y()))
 
     def paintGL(self):
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
