@@ -112,6 +112,9 @@ color_values = np.repeat([[1.0, 1.0, 1.0]], cube_vertices.shape[0], axis=0)
 cube_vertices = np.concatenate((cube_vertices, color_values), axis=1)
 
 cube_vertices, cube_indices = cube_vertices.flatten(), cube_indices.flatten()
+
+# cube_vertices = cube_vertices / np.amax(np.abs(cube_vertices))
+
 cube_vertices, cube_indices = cube_vertices.astype(np.float32), cube_indices.astype(np.uint32)
 
 shader = compileProgram(compileShader(vertex_src, GL_VERTEX_SHADER), compileShader(fragment_src, GL_FRAGMENT_SHADER))
@@ -155,10 +158,16 @@ glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 projection = pyrr.matrix44.create_perspective_projection_matrix(45, 1280 / 720, 0.1, 10000)
 # cube_pos = pyrr.matrix44.create_from_translation(pyrr.Vector3([0, -150, 0]))
-cube_pos = pyrr.matrix44.create_from_translation(pyrr.Vector3([0, -150, -50]))
+# cube_pos = pyrr.matrix44.create_from_translation(pyrr.Vector3([0, -150, -50]))
+# cube_pos = pyrr.matrix44.create_from_translation(pyrr.Vector3([0, 0, -150]))
+cube_pos = pyrr.matrix44.create_from_translation(pyrr.Vector3([0, 0, -150]))
 
 # eye, target, up
-view = pyrr.matrix44.create_look_at(pyrr.Vector3([0, 0, 300]), pyrr.Vector3([0, 0, 0]), pyrr.Vector3([0, 1, 0]))
+# view = pyrr.matrix44.create_look_at(pyrr.Vector3([0, 0, 300]), pyrr.Vector3([0, 0, 0]), pyrr.Vector3([0, 1, 0]))
+# view = pyrr.matrix44.create_look_at(pyrr.Vector3([0, 0, 0]), pyrr.Vector3([0, 0, 0]), pyrr.Vector3([0, 1, 0]))
+view = pyrr.matrix44.create_look_at(pyrr.Vector3([0, 300, 0]), pyrr.Vector3([0, 0, 0]), pyrr.Vector3([0, 0, 1]))
+# view = pyrr.matrix44.create_look_at(pyrr.Vector3([0, 10, 0]), pyrr.Vector3([0, 0, 0]), pyrr.Vector3([0, 0, 1]))
+
 
 model_loc = glGetUniformLocation(shader, "model")
 proj_loc = glGetUniformLocation(shader, "projection")
@@ -174,21 +183,24 @@ light_dir_loc = glGetUniformLocation(shader, "light_dir")
 view_pos_loc = glGetUniformLocation(shader, "view_pos")
 
 glUniform3f(light_color_loc, 1.0, 1.0, 1.0)
-# glUniform3f(light_color_loc, 0.5, 0.5, 0.5)
-glUniform3f(light_pos_loc, 0.0, 200.0, 500.0)
-glUniform3f(light_dir_loc, 0.0, 0.0, 0.0)
-glUniform3f(view_pos_loc, 0.0, 0.0, 0.0)
+
+# glUniform3f(light_pos_loc, 0.0, 200.0, 200.0)
+glUniform3f(light_pos_loc, -200.0, -200.0, 200.0)
+glUniform3f(light_dir_loc, 45.0, 45.0, 0.0)
+# glUniform3f(view_pos_loc, 0.0, 0.0, 0.0)
+glUniform3f(view_pos_loc, 0, 300, 0)
 
 rot_x_ = 0
 rot_y_ = 0
 rot_z_ = 0
 
-def key_event(window,key,scancode,action,mods):
+
+def key_event(window, key, scancode, action, mods):
     global rot_x_, rot_y_, rot_z_
 
-    if action == glfw.PRESS and key == glfw.KEY_D:
+    if action == glfw.PRESS and key == glfw.KEY_Q:
         rot_x_ += 0.1
-    if action == glfw.PRESS and key == glfw.KEY_A:
+    if action == glfw.PRESS and key == glfw.KEY_E:
         rot_x_ -= 0.1
 
     if action == glfw.PRESS and key == glfw.KEY_W:
@@ -196,10 +208,11 @@ def key_event(window,key,scancode,action,mods):
     if action == glfw.PRESS and key == glfw.KEY_S:
         rot_y_ -= 0.1
 
-    if action == glfw.PRESS and key == glfw.KEY_R:
+    if action == glfw.PRESS and key == glfw.KEY_A:
         rot_z_ += 0.1
-    if action == glfw.PRESS and key == glfw.KEY_F:
+    if action == glfw.PRESS and key == glfw.KEY_D:
         rot_z_ -= 0.1
+
 
 # the main application loop
 while not glfw.window_should_close(window):
@@ -212,11 +225,14 @@ while not glfw.window_should_close(window):
     glfw.set_input_mode(window, glfw.STICKY_KEYS, GL_TRUE)
     glfw.set_key_callback(window, key_event)
 
-    # rot_x = pyrr.Matrix44.from_x_rotation(np.pi / 2)
-    # rot_y = pyrr.Matrix44.from_y_rotation(0.5 * glfw.get_time())
-    # rot_z = pyrr.Matrix44.from_z_rotation(0)
+    # # rot_x = pyrr.Matrix44.from_x_rotation(np.pi / 2)
+    # rot_x = pyrr.Matrix44.from_x_rotation(0)
+    # # rot_y = pyrr.Matrix44.from_y_rotation(0.5 * glfw.get_time())
+    # rot_y = pyrr.Matrix44.from_y_rotation(0)
+    # # rot_z = pyrr.Matrix44.from_z_rotation(0)
+    # rot_z = pyrr.Matrix44.from_z_rotation(0.5 * glfw.get_time())
 
-    rot_x = pyrr.Matrix44.from_x_rotation(rot_x_ + np.pi / 2)
+    rot_x = pyrr.Matrix44.from_x_rotation(rot_x_)
     rot_y = pyrr.Matrix44.from_y_rotation(rot_y_)
     rot_z = pyrr.Matrix44.from_z_rotation(rot_z_)
 
