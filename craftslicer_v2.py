@@ -25,11 +25,11 @@ class MplCanvas(FigureCanvasQTAgg):
         # vertices, faces = cube
 
         import stl
-        from render import obj_mesh
+        from render import vector_to_vertex_index
 
         mesh = stl.mesh.Mesh.from_file(".\\models\\empire.stl")
         # mesh = stl.mesh.Mesh.from_file(".\\models\\empire.stl")
-        vertices, faces = obj_mesh(mesh.vectors)
+        vertices, faces = vector_to_vertex_index(mesh.vectors)
 
         self.render = Render(vertices, faces, self.fig)
         self.fig.axes[0].get_xaxis().set_visible(False)

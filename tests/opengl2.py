@@ -5,7 +5,7 @@ import stl
 from OpenGL.GL import *
 from OpenGL.GL.shaders import compileProgram, compileShader
 
-from render import obj_mesh
+from render import vector_to_vertex_index
 
 vertex_src = """
 # version 330
@@ -75,8 +75,8 @@ glfw.set_window_size_callback(window, window_resize)
 # make the context current
 glfw.make_context_current(window)
 
-model_mesh = stl.mesh.Mesh.from_file("..\\models\\statue.stl")
-cube_vertices, cube_indices = obj_mesh(model_mesh.vectors)
+model_mesh = stl.mesh.Mesh.from_file("..\\models\\TestHouse.stl")
+cube_vertices, cube_indices = vector_to_vertex_index(model_mesh.vectors)
 
 cube_indices = np.array(cube_indices, dtype=int)
 cube_vertices = np.array(cube_vertices, dtype=np.float32)[cube_indices]
@@ -107,23 +107,13 @@ cube_vertices, cube_indices = cube_vertices.flatten(), cube_indices.flatten()
 cube_vertices_ = cube_vertices_.flatten().astype(np.float32)
 cube_vertices, cube_indices = cube_vertices.astype(np.float32), cube_indices.astype(np.uint32)
 
-
-def obj_mesh_line(vectors):
-    vertices = [vertex for triangle in vectors for vertex in triangle]
-
-    i = vectors.shape[0] * 2
-    faces = list(np.linspace(0, i, i, endpoint=False).reshape((vectors.shape[0], 2)).astype(int))
-
-    return vertices, faces
-
-
 xy_max = int(max([x_max, y_max]))
 q, r = divmod(xy_max, 10)
 xy_max = (q + 1) * 10
 grid_x = np.array([[[i, 0, 0], [i, xy_max, 0]] for i in range(0, xy_max + 10, 10)])
 grid_y = np.array([[[0, i, 0], [xy_max, i, 0]] for i in range(0, xy_max + 10, 10)])
 grid_z = np.array([[[0, 0, 0], [0, 0, z_max]]])
-grid_vertices, grid_indices = obj_mesh_line(np.concatenate((grid_x, grid_y, grid_z)))
+grid_vertices, grid_indices = vector_to_vertex_index(np.concatenate((grid_x, grid_y, grid_z)), dimensions=2)
 grid_indices = np.array(grid_indices, dtype=int)
 grid_vertices = np.array(grid_vertices, dtype=np.float32)[grid_indices]
 grid_vertices = np.reshape(grid_vertices, (-1, 3))
@@ -193,9 +183,9 @@ glUseProgram(shader)
 glClearColor(80 / 255, 91 / 255, 103 / 255, 1)
 # glClearColor(1, 1, 1, 1)
 
-glfw.window_hint(glfw.SAMPLES, 8)
-# glfwWindowHint(GLFW_SAMPLES, 4)
-glEnable(GL_MULTISAMPLE)
+# glfw.window_hint(glfw.SAMPLES, 8)
+# # glfwWindowHint(GLFW_SAMPLES, 4)
+# glEnable(GL_MULTISAMPLE)
 
 glEnable(GL_DEPTH_TEST)
 glEnable(GL_BLEND)

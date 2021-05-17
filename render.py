@@ -3,11 +3,11 @@ import numpy as np
 from matplotlib.collections import PolyCollection
 
 
-def obj_mesh(vectors):
+def vector_to_vertex_index(vectors, dimensions=3):
     vertices = [vertex for triangle in vectors for vertex in triangle]
 
-    i = vectors.shape[0] * 3
-    faces = list(np.linspace(0, i, i, endpoint=False).reshape((vectors.shape[0], 3)).astype(int))
+    i = vectors.shape[0] * dimensions
+    faces = list(np.linspace(0, i, i, endpoint=False).reshape((vectors.shape[0], dimensions)).astype(int))
 
     return vertices, faces
 
@@ -77,8 +77,6 @@ class Render:
         self.ax = self.fig.add_axes([0, 0, 1, 1], xlim=[-x_lim, +x_lim], ylim=[-1, +1], frameon=False)
 
         render = self.render(self.theta, self.translate)
-        # self.collection = PolyCollection(render[0], closed=True, linewidth=0.1,
-        #                                  facecolor=render[1], edgecolor="black")
         self.collection = PolyCollection(render[0], closed=True, facecolor=render[1])
 
         self.ax.add_collection(self.collection)
@@ -100,10 +98,6 @@ class Render:
         self.theta[0] = self.theta_[0] + (self.vector_[1] * -100)
         self.theta[2] = self.theta_[2] + (self.vector_[0] * 100)
 
-        # render = self.render(self.theta, self.translate)
-        # self.collection.set(verts=render[0])
-        # self.collection.set(facecolor=render[1])
-        # self.fig.canvas.draw_idle()
         self.draw(*self.fig.get_size_inches() * self.fig.dpi)
 
     def on_press(self, event):
@@ -150,7 +144,7 @@ if __name__ == '__main__':
     mesh = stl.mesh.Mesh.from_file(".\\models\\statue.stl")
 
     assert len(mesh.vectors) > 3, "Not readable stl"
-    vertices_, faces_ = obj_mesh(mesh.vectors)
+    vertices_, faces_ = vector_to_vertex_index(mesh.vectors)
 
     # from models import house
     #
