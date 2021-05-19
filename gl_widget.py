@@ -104,23 +104,17 @@ class GlWidget(QGLWidget):
 
         transformation_matrix = rot_x @ rot_y @ rot_z @ self.position
 
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+        for poly_mode, draw_mode, indices, line_width, vao in zip([GL_LINE, GL_LINE, GL_FILL],
+                                                                  [GL_LINES, GL_TRIANGLES, GL_TRIANGLES],
+                                                                  [self.grid_indices, self.indices, self.indices],
+                                                                  [2, 1, 1],
+                                                                  [self.vao[2], self.vao[1], self.vao[0]]):
+            glPolygonMode(GL_FRONT_AND_BACK, poly_mode)
 
-        glBindVertexArray(self.vao[2])
-        glUniformMatrix4fv(self.model_loc, 1, GL_FALSE, transformation_matrix)
-        glLineWidth(2)
-        glDrawElements(GL_LINES, len(self.grid_indices), GL_UNSIGNED_INT, None)
-
-        glBindVertexArray(self.vao[1])
-        glUniformMatrix4fv(self.model_loc, 1, GL_FALSE, transformation_matrix)
-        glLineWidth(1)
-        glDrawElements(GL_TRIANGLES, len(self.indices), GL_UNSIGNED_INT, None)
-
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
-
-        glBindVertexArray(self.vao[0])
-        glUniformMatrix4fv(self.model_loc, 1, GL_FALSE, transformation_matrix)
-        glDrawElements(GL_TRIANGLES, len(self.indices), GL_UNSIGNED_INT, None)
+            glBindVertexArray(vao)
+            glUniformMatrix4fv(self.model_loc, 1, GL_FALSE, transformation_matrix)
+            glLineWidth(line_width)
+            glDrawElements(draw_mode, len(indices), GL_UNSIGNED_INT, None)
 
         glBindVertexArray(0)
         glFlush()
@@ -131,13 +125,16 @@ class GlWidget(QGLWidget):
 
         self.face_vertices, self.line_vertices, self.vertices, self.indices = vertex_index_to_gl(face_vertices,
                                                                                                  face_indices)
-        self.grid_vertices, self.grid_indices = grid_gl(*np.amax(self.vertices, axis=0))
+
+        maxes = np.amax(self.vertices, axis=0)
+
+        self.grid_vertices, self.grid_indices = grid_gl(*maxes)
         self.vao, self.vbo, self.ebo = create_vao(
             [self.face_vertices, self.indices],
             [self.line_vertices, self.indices],
             [self.grid_vertices, self.grid_indices])
 
-        self.model_loc, self.proj_loc, self.position = display_setup(*np.amax(self.vertices, axis=0))
+        self.model_loc, self.proj_loc, self.position = display_setup(*maxes)
 
 
 if __name__ == '__main__':

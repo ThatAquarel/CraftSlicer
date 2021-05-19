@@ -27,11 +27,15 @@ def vertex_index_to_gl(face_vertices, indices):
     line_vertices = np.reshape(line_vertices, (-1, 3, 6))
     q, _ = divmod(line_vertices.shape[0], 10000)
     line_vertices = line_vertices[0::q + 1]
+    line_vertices = line_vertices.reshape((-1, 6))
     face_vertices = np.concatenate((face_vertices, face_colors), axis=1)
 
+    x_max, y_max, z_max = np.amax(vertices, axis=0)
+    for vertices_ in [face_vertices, line_vertices]:
+        for column, max_ in zip([0, 1, 2], [x_max, y_max, z_max]):
+            vertices_[:, column] -= max_ / 2
+
     face_vertices, indices = face_vertices.flatten(), indices.flatten()
-    line_vertices = line_vertices.flatten().astype(np.float32)
-    face_vertices, indices = face_vertices.astype(np.float32), indices.astype(np.uint32)
 
     return face_vertices.astype(np.float32), line_vertices.flatten().astype(np.float32), vertices, indices.astype(
         np.uint32)
@@ -57,6 +61,9 @@ def grid_gl(x_max, y_max, z_max):
     grid_color_values[grid_x.reshape((-1, 3)).shape[0] + 1] = [0.0, 1.0, 0.0]
     grid_color_values[grid_color_values.shape[0] - 1] = [0.0, 0.0, 1.0]
     grid_color_values[grid_color_values.shape[0] - 2] = [0.0, 0.0, 1.0]
+
+    for column, max_ in zip([0, 1, 2], [x_max, y_max, z_max]):
+        grid_vertices[:, column] -= max_ / 2
 
     grid_vertices = np.concatenate((grid_vertices, grid_color_values), axis=1)
     grid_vertices, grid_indices = grid_vertices.astype(np.float32), grid_indices.astype(np.uint32)
@@ -99,7 +106,7 @@ def compile_shader(vertex_src, fragment_src):
 
 
 # noinspection DuplicatedCode
-def display_setup(x_max, y_max, z_max):
+def display_setup(x_max, y_max, _):
     shader = compile_shader(vertex_shader, fragment_shader)
     glUseProgram(shader)
 
@@ -112,8 +119,8 @@ def display_setup(x_max, y_max, z_max):
     projection = pyrr.matrix44.create_perspective_projection_matrix(45, 1280 / 720, 0.1, x_max * 2)
     position = pyrr.matrix44.create_from_translation(pyrr.Vector3([0, 0, 0]))
 
-    view = pyrr.matrix44.create_look_at(pyrr.Vector3([y_max * -6, z_max / 2, x_max / 2]),
-                                        pyrr.Vector3([y_max / 2, z_max / 2, x_max / 2]),
+    view = pyrr.matrix44.create_look_at(pyrr.Vector3([y_max * -6, 0, 0]),
+                                        pyrr.Vector3([0, 0, 0]),
                                         pyrr.Vector3([0, 1, 0]))
 
     model_loc = glGetUniformLocation(shader, "model")
