@@ -43,9 +43,11 @@ def vertex_index_to_gl(face_vertices, indices):
 
 # noinspection DuplicatedCode
 def grid_gl(x_max, y_max, z_max):
-    xy_max = int(max([x_max, y_max]))
+    xy_max = max([x_max, y_max])
+    xy_max = int(xy_max / np.sin(np.pi / 4))
     q, r = divmod(xy_max, 10)
     xy_max = (q + 1) * 10
+
     grid_x = np.array([[[i, 0, 0], [i, xy_max, 0]] for i in range(0, xy_max + 10, 10)])
     grid_y = np.array([[[0, i, 0], [xy_max, i, 0]] for i in range(0, xy_max + 10, 10)])
     grid_z = np.array([[[0, 0, 0], [0, 0, z_max]]])
@@ -55,14 +57,14 @@ def grid_gl(x_max, y_max, z_max):
     grid_vertices = np.reshape(grid_vertices, (-1, 3))
 
     grid_color_values = np.repeat([[1.0, 1.0, 1.0]], grid_vertices.shape[0], axis=0)
-    grid_color_values[0] = [1.0, 0.0, 0.0]
-    grid_color_values[1] = [1.0, 0.0, 0.0]
-    grid_color_values[grid_x.reshape((-1, 3)).shape[0]] = [0.0, 1.0, 0.0]
-    grid_color_values[grid_x.reshape((-1, 3)).shape[0] + 1] = [0.0, 1.0, 0.0]
+    grid_color_values[0] = [0.0, 1.0, 0.0]
+    grid_color_values[1] = [0.0, 1.0, 0.0]
+    grid_color_values[grid_x.reshape((-1, 3)).shape[0]] = [1.0, 0.0, 0.0]
+    grid_color_values[grid_x.reshape((-1, 3)).shape[0] + 1] = [1.0, 0.0, 0.0]
     grid_color_values[grid_color_values.shape[0] - 1] = [0.0, 0.0, 1.0]
     grid_color_values[grid_color_values.shape[0] - 2] = [0.0, 0.0, 1.0]
 
-    for column, max_ in zip([0, 1, 2], [x_max, y_max, z_max]):
+    for column, max_ in zip([0, 1, 2], [xy_max, xy_max, z_max]):
         grid_vertices[:, column] -= max_ / 2
 
     grid_vertices = np.concatenate((grid_vertices, grid_color_values), axis=1)

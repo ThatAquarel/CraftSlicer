@@ -38,8 +38,8 @@ class GlWidget(QGLWidget):
         self.theta_ = [np.pi / 2, np.pi, 0]
         self.translate_ = [0, 0, 0]
 
-        self.mouse_ = [0, 0]
-        self.vector_ = [0, 0]
+        self.mouse = [0, 0]
+        self.vector = [0, 0]
 
         self.press = False
 
@@ -62,10 +62,10 @@ class GlWidget(QGLWidget):
 
         norm_x, norm_y = self.normalize_mouse_coords(a0)
 
-        self.vector_ = [norm_x - self.mouse_[0], norm_y - self.mouse_[1]]
+        self.vector = [norm_x - self.mouse[0], norm_y - self.mouse[1]]
 
-        self.theta[1] = self.theta_[1] - self.vector_[0]
-        self.theta[2] = self.theta_[2] + self.vector_[1]
+        self.theta[1] = self.theta_[1] - self.vector[0]
+        self.theta[2] = self.theta_[2] + self.vector[1]
 
         self.update()
 
@@ -77,7 +77,7 @@ class GlWidget(QGLWidget):
         self.theta_ = [rad for rad in self.theta]
         self.translate_ = [vec for vec in self.translate]
 
-        self.mouse_ = self.normalize_mouse_coords(a0)
+        self.mouse = self.normalize_mouse_coords(a0)
 
     def mouseReleaseEvent(self, a0: QMouseEvent):
         if not self.press:
@@ -87,8 +87,8 @@ class GlWidget(QGLWidget):
         self.theta_ = [rad for rad in self.theta]
         self.translate_ = [vec for vec in self.translate]
 
-        self.mouse_ = [0, 0]
-        self.vector_ = [0, 0]
+        self.mouse = [0, 0]
+        self.vector = [0, 0]
 
     def resizeGL(self, width: int, height: int):
         glViewport(0, 0, width, height)
