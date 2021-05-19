@@ -196,7 +196,7 @@ projection = pyrr.matrix44.create_perspective_projection_matrix(45, 1280 / 720, 
 cube_pos = pyrr.matrix44.create_from_translation(pyrr.Vector3([0, 0, 0]))
 
 # eye, target, up
-view = pyrr.matrix44.create_look_at(pyrr.Vector3([y_max * 4, z_max / 2, x_max * 4]),
+view = pyrr.matrix44.create_look_at(pyrr.Vector3([y_max * 4, z_max / 2, x_max / 2]),
                                     pyrr.Vector3([y_max / 2, z_max / 2, x_max / 2]),
                                     pyrr.Vector3([0, 1, 0]))
 

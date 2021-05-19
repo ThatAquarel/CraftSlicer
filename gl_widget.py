@@ -2,6 +2,7 @@ import sys
 
 import pyrr.matrix44
 import stl
+from PyQt5.QtCore import Qt
 from PyQt5.QtGui import *
 from PyQt5.QtOpenGL import *
 from PyQt5.QtWidgets import *
@@ -15,6 +16,7 @@ class MainWindow(QMainWindow):
         self.setMinimumSize(1280, 720)
 
         self.gl_widget = GlWidget()
+        self.gl_widget.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
 
         parent_layout = QHBoxLayout()
         parent_layout.addWidget(self.gl_widget)
@@ -30,13 +32,12 @@ class MainWindow(QMainWindow):
 class GlWidget(QGLWidget):
     def __init__(self, *__args):
         super().__init__(*__args)
-        self.theta = [np.pi / 2, 0, 0]
-        # self.theta = [0, 0, 0]
+        self.theta = [np.pi / 2, np.pi, 0]
         self.translate = [0, 0, 0]
 
-        self.theta_ = [np.pi / 2, 0, 0]
-        # self.theta_ = [0, 0, 0]
+        self.theta_ = [np.pi / 2, np.pi, 0]
         self.translate_ = [0, 0, 0]
+
         self.mouse_ = [0, 0]
         self.vector_ = [0, 0]
 
@@ -64,9 +65,7 @@ class GlWidget(QGLWidget):
         self.vector_ = [norm_x - self.mouse_[0], norm_y - self.mouse_[1]]
 
         self.theta[1] = self.theta_[1] - self.vector_[0]
-
-        # self.theta[0] = self.theta_[0] + np.sin(self.vector_[1])
-        # self.theta[2] = self.theta_[2] + np.cos(self.vector_[1])
+        self.theta[2] = self.theta_[2] + self.vector_[1]
 
         self.update()
 
@@ -99,33 +98,11 @@ class GlWidget(QGLWidget):
     def paintGL(self):
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
-        # translate = pyrr.matrix44.create_from_translation(pyrr.Vector3([-30, 0, -30]))
-        def x_rotate(theta):
-            c, s = np.cos(theta), np.sin(theta)
-            return np.array([[1, 0, 0, 0], [0, c, -s, 0],
-                             [0, s, c, 0], [0, 0, 0, 1]], dtype=float)
-
-        def y_rotate(theta):
-            c, s = np.cos(theta), np.sin(theta)
-            return np.array([[c, 0, s, 0], [0, 1, 0, 0],
-                             [-s, 0, c, 0], [0, 0, 0, 1]], dtype=float)
-
-        def z_rotate(theta):
-            c, s = np.cos(theta), np.sin(theta)
-            return np.array([[c, -s, 0, 0], [s, c, 0, 0],
-                             [0, 0, 1, 0], [0, 0, 0, 1]], dtype=float)
-
         rot_x = pyrr.Matrix44.from_x_rotation(self.theta[0])
         rot_y = pyrr.Matrix44.from_y_rotation(self.theta[1])
         rot_z = pyrr.Matrix44.from_z_rotation(self.theta[2])
 
-        # rot_x = x_rotate(self.theta[0])
-        # rot_y = y_rotate(self.theta[1])
-        # rot_z = z_rotate(self.theta[2])
-
-        # transformation_matrix = rot_x @ rot_y @ rot_z @ self.position
         transformation_matrix = rot_x @ rot_y @ rot_z @ self.position
-        # transformation_matrix = self.position
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
 
@@ -140,6 +117,7 @@ class GlWidget(QGLWidget):
         glDrawElements(GL_TRIANGLES, len(self.indices), GL_UNSIGNED_INT, None)
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
+
         glBindVertexArray(self.vao[0])
         glUniformMatrix4fv(self.model_loc, 1, GL_FALSE, transformation_matrix)
         glDrawElements(GL_TRIANGLES, len(self.indices), GL_UNSIGNED_INT, None)

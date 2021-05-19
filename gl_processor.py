@@ -109,10 +109,10 @@ def display_setup(x_max, y_max, z_max):
     glEnable(GL_BLEND)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-    projection = pyrr.matrix44.create_perspective_projection_matrix(45, 1280 / 720, 0.1, 10000)
+    projection = pyrr.matrix44.create_perspective_projection_matrix(45, 1280 / 720, 0.1, x_max * 2)
     position = pyrr.matrix44.create_from_translation(pyrr.Vector3([0, 0, 0]))
 
-    view = pyrr.matrix44.create_look_at(pyrr.Vector3([y_max * 4, z_max / 2, x_max * 4]),
+    view = pyrr.matrix44.create_look_at(pyrr.Vector3([y_max * -6, z_max / 2, x_max / 2]),
                                         pyrr.Vector3([y_max / 2, z_max / 2, x_max / 2]),
                                         pyrr.Vector3([0, 1, 0]))
 
