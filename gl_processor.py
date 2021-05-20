@@ -96,8 +96,11 @@ def create_vao(*args):
     vbo = glGenBuffers(len(args))
     ebo = glGenBuffers(len(args))
 
-    for i, (vertices, indices) in enumerate(args):
-        write_vao(vao[i], vbo[i], ebo[i], vertices, indices)
+    if len(args) == 1:
+        write_vao(vao, vbo, ebo, *args[0])
+    else:
+        for i, (vertices, indices) in enumerate(args):
+            write_vao(vao[i], vbo[i], ebo[i], vertices, indices)
 
     return vao, vbo, ebo
 
@@ -133,3 +136,12 @@ def display_setup(x_max, y_max, _):
     glUniformMatrix4fv(view_loc, 1, GL_FALSE, view)
 
     return model_loc, proj_loc, position
+
+
+def position_matrix(theta_x, theta_y, theta_z, pos_x, pos_y, pos_z):
+    pos = pyrr.matrix44.create_from_translation(pyrr.Vector3([pos_x, pos_y, pos_z]))
+    rot_x = pyrr.Matrix44.from_x_rotation(theta_x)
+    rot_y = pyrr.Matrix44.from_y_rotation(theta_y)
+    rot_z = pyrr.Matrix44.from_z_rotation(theta_z)
+
+    return rot_x @ rot_y @ rot_z @ pos
