@@ -7,8 +7,8 @@ from PyQt5.QtGui import *
 from PyQt5.QtOpenGL import *
 from PyQt5.QtWidgets import *
 
-from gl_processor import *
 from gl_elements import GlModel, GlGrid
+from gl_processor import *
 
 
 class MainWindow(QMainWindow):
@@ -29,22 +29,32 @@ class MainWindow(QMainWindow):
         self.show()
 
 
-# noinspection DuplicatedCode
 class GlWidget(QGLWidget):
     def __init__(self, *__args):
         super().__init__(*__args)
         self.theta = [np.pi / 2, np.pi, 0]
-        self.translate = [0, 0, 0]
         self.theta_ = [np.pi / 2, np.pi, 0]
-        self.translate_ = [0, 0, 0]
+
+        self.translate = [0, 0]
+        self.translate_ = [0, 0]
+
+        self.zoom = -6
 
         self.mouse = [0, 0]
         self.vector = [0, 0]
-        self.press = False
+        self.is_rotate = False
+        self.is_translate = False
 
-        self.model_loc, self.proj_loc, self.position = None, None, None
+        self.model_loc, self.proj_loc, self.view_loc = None, None, None
         self.models = []
         self.grid = None
+
+    def update_view(self):
+        view = pyrr.matrix44.create_look_at(pyrr.Vector3([self.grid.maxes[1] * self.zoom,
+                                                          self.translate[0], self.translate[1]]),
+                                            pyrr.Vector3([0, self.translate[0], self.translate[1]]),
+                                            pyrr.Vector3([0, 1, 0]))
+        glUniformMatrix4fv(self.view_loc, 1, GL_FALSE, view)
 
     def normalize_mouse_coords(self, a0):
         a_min = min([self.frameSize().width() / 2, self.frameSize().height() / 2])
@@ -54,38 +64,48 @@ class GlWidget(QGLWidget):
         return norm_x, norm_y
 
     def mouseMoveEvent(self, a0: QMouseEvent):
-        if not self.press:
-            return
-
         norm_x, norm_y = self.normalize_mouse_coords(a0)
-
         self.vector = [norm_x - self.mouse[0], norm_y - self.mouse[1]]
 
-        self.theta[1] = self.theta_[1] - self.vector[0]
-        self.theta[2] = self.theta_[2] + self.vector[1]
+        if self.is_rotate:
+            self.theta[1] = self.theta_[1] - self.vector[0]
+            self.theta[2] = self.theta_[2] + self.vector[1]
+
+        elif self.is_translate:
+            self.translate[0] = self.translate_[0] - self.vector[1] * 100
+            self.translate[1] = self.translate_[1] - self.vector[0] * 100
+
+            self.update_view()
 
         self.update()
 
     def mousePressEvent(self, a0: QMouseEvent):
-        if self.press:
-            return
-        self.press = True
-
-        self.theta_ = [rad for rad in self.theta]
-        self.translate_ = [vec for vec in self.translate]
-
         self.mouse = self.normalize_mouse_coords(a0)
 
-    def mouseReleaseEvent(self, a0: QMouseEvent):
-        if not self.press:
-            return
-        self.press = False
+        if a0.button() == Qt.MouseButton.RightButton:
+            self.is_rotate = True
+            self.theta_ = [rad for rad in self.theta]
 
-        self.theta_ = [rad for rad in self.theta]
-        self.translate_ = [vec for vec in self.translate]
+        elif a0.button() == Qt.MouseButton.MiddleButton:
+            self.is_translate = True
+            self.translate_ = [vec for vec in self.translate]
+
+    def mouseReleaseEvent(self, a0: QMouseEvent):
+        if self.is_rotate:
+            self.is_rotate = False
+            self.theta_ = [rad for rad in self.theta]
+
+        elif self.is_translate:
+            self.is_translate = False
+            self.translate_ = [vec for vec in self.translate]
 
         self.mouse = [0, 0]
         self.vector = [0, 0]
+
+    def wheelEvent(self, a0: QWheelEvent):
+        self.zoom = min(-0, self.zoom + a0.angleDelta().y() / 120)
+        self.update_view()
+        self.update()
 
     def resizeGL(self, width: int, height: int):
         if height <= 0 or width <= 0:
@@ -110,7 +130,7 @@ class GlWidget(QGLWidget):
         self.models.append(GlModel(model_mesh.vectors, self))
         self.grid = GlGrid(self.models, self)
 
-        self.model_loc, self.proj_loc, self.position = display_setup(*self.grid.maxes)
+        self.model_loc, self.proj_loc, self.view_loc = display_setup(*self.grid.maxes)
 
 
 if __name__ == '__main__':

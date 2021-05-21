@@ -1,6 +1,5 @@
 import sys
 
-import matplotlib
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
@@ -12,25 +11,6 @@ import breeze_resources
 # noinspection PyUnresolvedReferences
 import qrc_resources
 
-matplotlib.use('Qt5Agg')
-
-
-# class MplCanvas(FigureCanvasQTAgg):
-#     def __init__(self, parent=None, width=12, height=8, dpi=100):
-#         self.parent = parent
-#         self.fig = Figure(figsize=(width, height), dpi=dpi)
-#
-#         import stl
-#         from render import vector_to_vertex_index
-#
-#         mesh = stl.mesh.Mesh.from_file(".\\models\\empire.stl")
-#         vertices, faces = vector_to_vertex_index(mesh.vectors)
-#
-#         self.render = Render(vertices, faces, self.fig)
-#         self.fig.axes[0].get_xaxis().set_visible(False)
-#         self.fig.axes[0].get_yaxis().set_visible(False)
-#         super(MplCanvas, self).__init__(self.fig)
-
 
 class MainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
@@ -40,15 +20,6 @@ class MainWindow(QMainWindow):
         self._create_actions()
         self._create_menu_bar()
         self._create_toolbars()
-
-        # self.canvas = MplCanvas(self, width=12, height=8, dpi=100)
-        #
-        # self.on_press = self.canvas.render.on_press
-        # self.on_release = self.canvas.render.on_release
-        # self.on_move = self.canvas.render.on_move
-        # self.canvas.mpl_connect('button_press_event', self.on_press)
-        # self.canvas.mpl_connect('button_release_event', self.on_release)
-        # self.canvas.mpl_connect('motion_notify_event', self.on_move)
 
         self.canvas = GlWidget()
         self.canvas.setFocusPolicy(Qt.FocusPolicy.StrongFocus)

@@ -122,7 +122,6 @@ def display_setup(x_max, y_max, _):
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
     projection = pyrr.matrix44.create_perspective_projection_matrix(45, 1280 / 720, 0.1, x_max * 2)
-    position = pyrr.matrix44.create_from_translation(pyrr.Vector3([0, 0, 0]))
 
     view = pyrr.matrix44.create_look_at(pyrr.Vector3([y_max * -6, 0, 0]),
                                         pyrr.Vector3([0, 0, 0]),
@@ -135,7 +134,7 @@ def display_setup(x_max, y_max, _):
     glUniformMatrix4fv(proj_loc, 1, GL_FALSE, projection)
     glUniformMatrix4fv(view_loc, 1, GL_FALSE, view)
 
-    return model_loc, proj_loc, position
+    return model_loc, proj_loc, view_loc
 
 
 def position_matrix(theta_x, theta_y, theta_z, pos_x, pos_y, pos_z):
