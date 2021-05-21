@@ -103,7 +103,7 @@ class GlWidget(QGLWidget):
         self.vector = [0, 0]
 
     def wheelEvent(self, a0: QWheelEvent):
-        self.zoom = min(-0, self.zoom + a0.angleDelta().y() / 120)
+        self.zoom = max(-32., min(-1e-4, self.zoom + -a0.angleDelta().y() / 120))
         self.update_view()
         self.update()
 

@@ -6,8 +6,8 @@ from PyQt5.QtWidgets import *
 
 from gl_widget import GlWidget
 
-# noinspection PyUnresolvedReferences
-import breeze_resources
+import qdarkstyle
+
 # noinspection PyUnresolvedReferences
 import qrc_resources
 
@@ -50,8 +50,6 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(widget)
 
         self.show()
-
-        # self.canvas.render.draw(self.model_tab.contentsRect().width(), self.model_tab.contentsRect().height())
 
     def _create_left_layout(self):
         self.top_tabs = QTabWidget()
@@ -147,10 +145,7 @@ class MainWindow(QMainWindow):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
-    file = QFile(":/dark.qss")
-    file.open(QFile.ReadOnly | QFile.Text)
-    stream = QTextStream(file)
-    app.setStyleSheet(stream.readAll())
+    app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt5'))
 
-    w = MainWindow()
+    window = MainWindow()
     app.exec_()
