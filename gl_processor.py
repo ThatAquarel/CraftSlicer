@@ -20,14 +20,14 @@ def vertex_index_gl(face_vertices, indices):
     face_vertices[:, 2] -= z_min
     vertices = face_vertices
 
-    face_colors = np.repeat([[0.7, 0.7, 0.7]], face_vertices.shape[0], axis=0)
-    line_colors = np.repeat([[1.0, 1.0, 1.0]], face_vertices.shape[0], axis=0)
+    face_colors = np.repeat([[0.7, 0.7, 0.7, 1.0]], face_vertices.shape[0], axis=0)
+    line_colors = np.repeat([[1.0, 1.0, 1.0, 1.0]], face_vertices.shape[0], axis=0)
 
     line_vertices = np.concatenate((face_vertices, line_colors), axis=1)
-    line_vertices = np.reshape(line_vertices, (-1, 3, 6))
+    line_vertices = np.reshape(line_vertices, (-1, 3, 7))
     q, _ = divmod(line_vertices.shape[0], 10000)
     line_vertices = line_vertices[0::q + 1]
-    line_vertices = line_vertices.reshape((-1, 6))
+    line_vertices = line_vertices.reshape((-1, 7))
     face_vertices = np.concatenate((face_vertices, face_colors), axis=1)
 
     x_max, y_max, z_max = np.amax(vertices, axis=0)
@@ -60,13 +60,13 @@ def grid_gl(x_max, y_max, z_max):
     grid_vertices = np.array(grid_vertices, dtype=np.float32)[grid_indices]
     grid_vertices = np.reshape(grid_vertices, (-1, 3))
 
-    grid_color_values = np.repeat([[1.0, 1.0, 1.0]], grid_vertices.shape[0], axis=0)
-    grid_color_values[0] = [0.0, 1.0, 0.0]
-    grid_color_values[1] = [0.0, 1.0, 0.0]
-    grid_color_values[grid_x.reshape((-1, 3)).shape[0]] = [1.0, 0.0, 0.0]
-    grid_color_values[grid_x.reshape((-1, 3)).shape[0] + 1] = [1.0, 0.0, 0.0]
-    grid_color_values[grid_color_values.shape[0] - 1] = [0.0, 0.0, 1.0]
-    grid_color_values[grid_color_values.shape[0] - 2] = [0.0, 0.0, 1.0]
+    grid_color_values = np.repeat([[1.0, 1.0, 1.0, 1.0]], grid_vertices.shape[0], axis=0)
+    grid_color_values[0] = [0.0, 1.0, 0.0, 1.0]
+    grid_color_values[1] = [0.0, 1.0, 0.0, 1.0]
+    grid_color_values[grid_x.reshape((-1, 3)).shape[0]] = [1.0, 0.0, 0.0, 1.0]
+    grid_color_values[grid_x.reshape((-1, 3)).shape[0] + 1] = [1.0, 0.0, 0.0, 1.0]
+    grid_color_values[grid_color_values.shape[0] - 1] = [0.0, 0.0, 1.0, 1.0]
+    grid_color_values[grid_color_values.shape[0] - 2] = [0.0, 0.0, 1.0, 1.0]
 
     for column, max_ in zip([0, 1, 2], [xy_max, xy_max, z_max]):
         grid_vertices[:, column] -= max_ / 2
@@ -88,9 +88,9 @@ def write_vao(vao_id, vbo_id, ebo_id, vertices, indices):
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.nbytes, indices, GL_STATIC_DRAW)
 
     glEnableVertexAttribArray(0)
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, vertices.itemsize * 6, ctypes.c_void_p(0))
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, vertices.itemsize * 7, ctypes.c_void_p(0))
     glEnableVertexAttribArray(1)
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, vertices.itemsize * 6, ctypes.c_void_p(12))
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, vertices.itemsize * 7, ctypes.c_void_p(12))
 
     glBindVertexArray(0)
 
