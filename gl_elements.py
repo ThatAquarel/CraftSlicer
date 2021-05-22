@@ -8,8 +8,8 @@ class GlModel:
         self.widget = widget
 
         face_vertices, face_indices = vector_to_vertex_index(vectors)
-        self.face_vertices, self.line_vertices, self.vertices, self.indices = vertex_index_to_gl(face_vertices,
-                                                                                                 face_indices)
+        self.face_vertices, self.line_vertices, self.vertices, self.indices = vertex_index_gl(face_vertices,
+                                                                                              face_indices)
         self.maxes = np.amax(self.vertices, axis=0)
 
         self.vao, self.vbo, self.ebo = create_vao(
@@ -34,6 +34,13 @@ class GlModel:
         glDrawElements(GL_TRIANGLES, len(self.indices), GL_UNSIGNED_INT, None)
 
         glBindVertexArray(0)
+
+
+class GlImage:
+    def __init__(self, image, widget):
+        self.theta = [0, 0, 0]
+        self.position = [0, 0, 0]
+        self.widget = widget
 
 
 class GlGrid:

@@ -8,7 +8,7 @@ from render import vector_to_vertex_index
 
 
 # noinspection DuplicatedCode
-def vertex_index_to_gl(face_vertices, indices):
+def vertex_index_gl(face_vertices, indices):
     indices = np.array(indices, dtype=int)
     face_vertices = np.array(face_vertices, dtype=np.float32)[indices]
 
@@ -39,6 +39,10 @@ def vertex_index_to_gl(face_vertices, indices):
 
     return face_vertices.astype(np.float32), line_vertices.flatten().astype(np.float32), vertices, indices.astype(
         np.uint32)
+
+
+def image_gl(image):
+    pass
 
 
 # noinspection DuplicatedCode

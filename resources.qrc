@@ -1,14 +1,28 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
-    <file alias="about.svg">resources/about.svg</file>
-    <file alias="exit.svg">resources/exit.svg</file>
-    <file alias="mirror.svg">resources/mirror.svg</file>
-    <file alias="move.svg">resources/move.svg</file>
-    <file alias="new.svg">resources/new.svg</file>
-    <file alias="open.svg">resources/open.svg</file>
-    <file alias="rotate.svg">resources/rotate.svg</file>
-    <file alias="save.svg">resources/save.svg</file>
-    <file alias="scale.svg">resources/scale.svg</file>
-    <file alias="select.svg">resources/select.svg</file>
+    <file alias="arrow_left.svg">resources/arrow/arrow_left.svg</file>
+    <file alias="arrow_right.svg">resources/arrow/arrow_right.svg</file>
+
+    <file alias="lock_open.svg">resources/lock/lock_open.svg</file>
+    <file alias="lock_closed.svg">resources/lock/lock_closed.svg</file>
+
+    <file alias="about.svg">resources/menu/about.svg</file>
+    <file alias="exit.svg">resources/menu/exit.svg</file>
+    <file alias="new.svg">resources/menu/new.svg</file>
+    <file alias="open.svg">resources/menu/open.svg</file>
+    <file alias="save.svg">resources/menu/save.svg</file>
+
+    <file alias="mirror.svg">resources/model/mirror.svg</file>
+    <file alias="move.svg">resources/model/move.svg</file>
+    <file alias="rotate.svg">resources/model/rotate.svg</file>
+    <file alias="scale.svg">resources/model/scale.svg</file>
+    <file alias="select.svg">resources/model/select.svg</file>
+
+    <file alias="image.svg">resources/tree/image.svg</file>
+    <file alias="model.svg">resources/tree/model.svg</file>
+
+    <file alias="pan.svg">resources/view/pan.svg</file>
+    <file alias="view.svg">resources/view/rotate.svg</file>
+    <file alias="zoom.svg">resources/view/zoom.svg</file>
 </qresource>
 </RCC>
