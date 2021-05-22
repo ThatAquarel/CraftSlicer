@@ -5,11 +5,10 @@ class GlModel:
     def __init__(self, vectors, widget):
         self.theta = [0, 0, 0]
         self.position = [0, 0, 0]
+        self.scale = [1, 1, 1]
         self.widget = widget
 
-        face_vertices, face_indices = vector_to_vertex_index(vectors)
-        self.face_vertices, self.line_vertices, self.vertices, self.indices = vertex_index_gl(face_vertices,
-                                                                                              face_indices)
+        self.face_vertices, self.line_vertices, self.vertices, self.indices = vector_gl(vectors)
         self.maxes = np.amax(self.vertices, axis=0)
 
         self.vao, self.vbo, self.ebo = create_vao(
@@ -17,10 +16,16 @@ class GlModel:
             [self.line_vertices, self.indices])
 
     def draw(self):
-        transformation_matrix = position_matrix(self.widget.theta[0] + self.theta[0],
-                                                self.widget.theta[1] + self.theta[1],
-                                                self.widget.theta[2] + self.theta[2],
-                                                *self.position)
+        # transformation_matrix = position_matrix([self.widget.theta[0] + self.theta[0],
+        #                                          self.widget.theta[1] + self.theta[1],
+        #                                          self.widget.theta[2] + self.theta[2]],
+        #                                         self.position,
+        #                                         self.scale)
+
+        transformation_matrix = position_matrix(
+            [theta + theta_ for theta, theta_ in zip(self.widget.theta, self.theta)],
+            self.position,
+            self.scale)
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
         glBindVertexArray(self.vao[0])
@@ -40,23 +45,39 @@ class GlImage:
     def __init__(self, image, widget):
         self.theta = [0, 0, 0]
         self.position = [0, 0, 0]
+        self.scale = [1, 1, 1]
         self.widget = widget
+
+        self.vertices, self.indices = image_gl(image, self.widget.visual_offset)
+        self.vao, self.vbo, self.ebo = create_vao([self.vertices, self.indices])
+
+    def draw(self):
+        transformation_matrix = position_matrix(
+            [theta + theta_ for theta, theta_ in zip(self.widget.theta, self.theta)],
+            self.position,
+            self.scale)
+
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
+        glBindVertexArray(self.vao)
+        glUniformMatrix4fv(self.widget.model_loc, 1, GL_FALSE, transformation_matrix)
+        glDrawElements(GL_TRIANGLES, len(self.indices), GL_UNSIGNED_INT, None)
+
+        glBindVertexArray(0)
 
 
 class GlGrid:
-    def __init__(self, models, widget):
+    def __init__(self, widget):
         self.widget = widget
 
-        self.maxes = np.amax(np.array([model.maxes for model in models]), axis=0)
+        self.maxes = np.amax(np.array([model.maxes for model in self.widget.models]), axis=0)
 
-        self.grid_vertices, self.grid_indices = grid_gl(*self.maxes)
+        self.grid_vertices, self.grid_indices, self.widget.visual_offset = grid_gl(*self.maxes)
         self.vao, self.vbo, self.ebo = create_vao([self.grid_vertices, self.grid_indices])
 
     def draw(self):
-        transformation_matrix = position_matrix(self.widget.theta[0],
-                                                self.widget.theta[1],
-                                                self.widget.theta[2],
-                                                0, 0, 0)
+        transformation_matrix = position_matrix(self.widget.theta,
+                                                [0., 0., 0.],
+                                                [1., 1., 1.])
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
         glBindVertexArray(self.vao)

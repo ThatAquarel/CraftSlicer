@@ -7,7 +7,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtOpenGL import *
 from PyQt5.QtWidgets import *
 
-from gl_elements import GlModel, GlGrid
+from gl_elements import GlModel, GlImage, GlGrid
 from gl_processor import *
 
 
@@ -47,7 +47,10 @@ class GlWidget(QGLWidget):
 
         self.model_loc, self.proj_loc, self.view_loc = None, None, None
         self.models = []
+        self.images = []
         self.grid = None
+
+        self.visual_offset = [0, 0, 0]
 
     def update_view(self):
         view = pyrr.matrix44.create_look_at(pyrr.Vector3([self.grid.maxes[1] * self.zoom,
@@ -121,14 +124,20 @@ class GlWidget(QGLWidget):
         self.grid.draw()
         for model in self.models:
             model.draw()
+        for image in self.images:
+            image.draw()
 
         glFlush()
 
     def initializeGL(self):
         model_mesh = stl.mesh.Mesh.from_file(".\\models\\statue.stl")
-
         self.models.append(GlModel(model_mesh.vectors, self))
-        self.grid = GlGrid(self.models, self)
+
+        self.grid = GlGrid(self)
+
+        from PIL import Image
+        image = Image.open(".\\models\\statue.png")
+        self.images.append(GlImage(image, self))
 
         self.model_loc, self.proj_loc, self.view_loc = display_setup(*self.grid.maxes)
 

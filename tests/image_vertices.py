@@ -3,7 +3,8 @@ import numpy as np
 from PIL import Image
 from matplotlib.collections import PolyCollection
 
-image = np.array(Image.open("..\\models\\empire.png"))
+image = np.array(Image.open("..\\models\\empire_jpg.jpg"))
+# image = np.array(Image.open("..\\models\\empire.png"))
 shape = image.shape
 
 vertices = np.array([

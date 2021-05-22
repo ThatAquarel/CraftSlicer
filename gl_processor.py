@@ -8,7 +8,10 @@ from render import vector_to_vertex_index
 
 
 # noinspection DuplicatedCode
-def vertex_index_gl(face_vertices, indices):
+# def vector_gl(face_vertices, indices):
+def vector_gl(vectors):
+    face_vertices, indices = vector_to_vertex_index(vectors)
+
     indices = np.array(indices, dtype=int)
     face_vertices = np.array(face_vertices, dtype=np.float32)[indices]
 
@@ -41,8 +44,39 @@ def vertex_index_gl(face_vertices, indices):
         np.uint32)
 
 
-def image_gl(image):
-    pass
+def image_gl(image, maxes):
+    width, height = image.size
+    aspect = width / height
+    width, height = int(maxes[1]), int(maxes[1] / aspect)
+
+    image = image.resize((width, height))
+    image = np.flip(image, axis=0)
+
+    vectors = np.array([
+        [[[0, y_, x_], [0, y_, x_ + 1], [0, y_ + 1, x_]],
+         [[0, y_, x_ + 1], [0, y_ + 1, x_], [0, y_ + 1, x_ + 1]]]
+        for y_ in range(image.shape[1]) for x_ in range(image.shape[0])
+    ]).reshape((-1, 3, 3))
+
+    image_colors = image.copy().astype(np.float32) / 255
+    colors = np.array([
+        [image_colors[x_][y_] for _ in range(6)]
+        for y_ in range(image.shape[1]) for x_ in range(image.shape[0])
+    ]).reshape((-1, image.shape[-1]))
+
+    if image.shape[-1] == 3:
+        alpha = np.ones(image.shape[0], dtype=np.float32) * 0.5
+        colors = np.insert(colors, image.shape[-1], alpha, axis=1)
+    colors[:, 3] = 0.5
+
+    vertices, indices = vector_to_vertex_index(vectors)
+    vertices, indices = np.array(vertices), np.array(indices)
+    vertices = np.concatenate((vertices, colors), axis=1)
+
+    for column, max_ in zip([0, 1, 2], maxes):
+        vertices[:, column] -= max_ / 2
+
+    return vertices.flatten().astype(np.float32), indices.flatten().astype(np.uint32)
 
 
 # noinspection DuplicatedCode
@@ -74,7 +108,7 @@ def grid_gl(x_max, y_max, z_max):
     grid_vertices = np.concatenate((grid_vertices, grid_color_values), axis=1)
     grid_vertices, grid_indices = grid_vertices.astype(np.float32), grid_indices.astype(np.uint32)
 
-    return grid_vertices.flatten(), grid_indices.flatten()
+    return grid_vertices.flatten(), grid_indices.flatten(), [xy_max, xy_max, z_max]
 
 
 # noinspection DuplicatedCode
@@ -141,10 +175,11 @@ def display_setup(x_max, y_max, _):
     return model_loc, proj_loc, view_loc
 
 
-def position_matrix(theta_x, theta_y, theta_z, pos_x, pos_y, pos_z):
-    pos = pyrr.matrix44.create_from_translation(pyrr.Vector3([pos_x, pos_y, pos_z]))
-    rot_x = pyrr.Matrix44.from_x_rotation(theta_x)
-    rot_y = pyrr.Matrix44.from_y_rotation(theta_y)
-    rot_z = pyrr.Matrix44.from_z_rotation(theta_z)
+def position_matrix(theta, pos, scale):
+    pos_matrix = pyrr.matrix44.create_from_translation(pyrr.Vector3(pos))
+    scale_matrix = pyrr.matrix44.create_from_scale(pyrr.Vector3(scale))
+    rot_x = pyrr.Matrix44.from_x_rotation(theta[0])
+    rot_y = pyrr.Matrix44.from_y_rotation(theta[1])
+    rot_z = pyrr.Matrix44.from_z_rotation(theta[2])
 
-    return rot_x @ rot_y @ rot_z @ pos
+    return rot_x @ rot_y @ rot_z @ pos_matrix @ scale_matrix

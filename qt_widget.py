@@ -1,5 +1,3 @@
-import PyQt5.QtWidgets
-from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 
@@ -11,7 +9,7 @@ class ExpandConstraint(QWidget):
     def __init__(self):
         super(ExpandConstraint, self).__init__()
         self.align = QWidget()
-        self.align.setSizePolicy(QSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Expanding))
+        self.align.setSizePolicy(QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding))
         self.align.setContentsMargins(0, 0, 0, 0)
 
         self.parent_layout = QHBoxLayout(self)
