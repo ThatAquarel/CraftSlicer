@@ -172,7 +172,7 @@ def display_setup(x_max, y_max, _):
     glUniformMatrix4fv(proj_loc, 1, GL_FALSE, projection)
     glUniformMatrix4fv(view_loc, 1, GL_FALSE, view)
 
-    return model_loc, proj_loc, view_loc
+    return model_loc, proj_loc, view_loc, shader
 
 
 def position_matrix(theta, pos, scale):

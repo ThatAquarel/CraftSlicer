@@ -15,26 +15,26 @@ class GlModel:
             [self.face_vertices, self.indices],
             [self.line_vertices, self.indices])
 
-    def draw(self):
-        # transformation_matrix = position_matrix([self.widget.theta[0] + self.theta[0],
-        #                                          self.widget.theta[1] + self.theta[1],
-        #                                          self.widget.theta[2] + self.theta[2]],
-        #                                         self.position,
-        #                                         self.scale)
+        self.transformation_matrix = None
+        self.set_transformation_matrix()
 
-        transformation_matrix = position_matrix(
+    def set_transformation_matrix(self):
+        self.transformation_matrix = position_matrix(
             [theta + theta_ for theta, theta_ in zip(self.widget.theta, self.theta)],
             self.position,
             self.scale)
 
+    def draw(self):
+        self.set_transformation_matrix()
+
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
         glBindVertexArray(self.vao[0])
-        glUniformMatrix4fv(self.widget.model_loc, 1, GL_FALSE, transformation_matrix)
+        glUniformMatrix4fv(self.widget.model_loc, 1, GL_FALSE, self.transformation_matrix)
         glDrawElements(GL_TRIANGLES, len(self.indices), GL_UNSIGNED_INT, None)
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
         glBindVertexArray(self.vao[1])
-        glUniformMatrix4fv(self.widget.model_loc, 1, GL_FALSE, transformation_matrix)
+        glUniformMatrix4fv(self.widget.model_loc, 1, GL_FALSE, self.transformation_matrix)
         glLineWidth(1)
         glDrawElements(GL_TRIANGLES, len(self.indices), GL_UNSIGNED_INT, None)
 
@@ -51,15 +51,21 @@ class GlImage:
         self.vertices, self.indices = image_gl(image, self.widget.visual_offset)
         self.vao, self.vbo, self.ebo = create_vao([self.vertices, self.indices])
 
-    def draw(self):
-        transformation_matrix = position_matrix(
+        self.transformation_matrix = None
+        self.set_transformation_matrix()
+
+    def set_transformation_matrix(self):
+        self.transformation_matrix = position_matrix(
             [theta + theta_ for theta, theta_ in zip(self.widget.theta, self.theta)],
             self.position,
             self.scale)
 
+    def draw(self):
+        self.set_transformation_matrix()
+
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
         glBindVertexArray(self.vao)
-        glUniformMatrix4fv(self.widget.model_loc, 1, GL_FALSE, transformation_matrix)
+        glUniformMatrix4fv(self.widget.model_loc, 1, GL_FALSE, self.transformation_matrix)
         glDrawElements(GL_TRIANGLES, len(self.indices), GL_UNSIGNED_INT, None)
 
         glBindVertexArray(0)

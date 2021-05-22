@@ -1,14 +1,17 @@
 import sys
 
+import numpy as np
 import pyrr.matrix44
 import stl
+from OpenGL.GL import *
+from OpenGL.GLU import *
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import *
 from PyQt5.QtOpenGL import *
 from PyQt5.QtWidgets import *
 
 from gl_elements import GlModel, GlImage, GlGrid
-from gl_processor import *
+from gl_processor import display_setup
 
 
 class MainWindow(QMainWindow):
@@ -45,12 +48,10 @@ class GlWidget(QGLWidget):
         self.is_rotate = False
         self.is_translate = False
 
-        self.model_loc, self.proj_loc, self.view_loc = None, None, None
+        self.model_loc, self.proj_loc, self.view_loc, self.shader = None, None, None, None
         self.models = []
         self.images = []
         self.grid = None
-
-        self.visual_offset = [0, 0, 0]
 
     def update_view(self):
         view = pyrr.matrix44.create_look_at(pyrr.Vector3([self.grid.maxes[1] * self.zoom,
@@ -115,8 +116,8 @@ class GlWidget(QGLWidget):
             return
 
         glViewport(0, 0, width, height)
-        projection = pyrr.matrix44.create_perspective_projection_matrix(45, width / height, 0.1, 10000)
-        glUniformMatrix4fv(self.proj_loc, 1, GL_FALSE, projection)
+        projection_ = pyrr.matrix44.create_perspective_projection_matrix(45, width / height, 0.1, 10000)
+        glUniformMatrix4fv(self.proj_loc, 1, GL_FALSE, projection_)
 
     def paintGL(self):
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
@@ -129,6 +130,44 @@ class GlWidget(QGLWidget):
 
         glFlush()
 
+        glUseProgram(0)
+        glMatrixMode(GL_PROJECTION)
+        glPushMatrix()
+        glLoadIdentity()
+        glViewport(0, 0, self.width(), self.height())
+        gluOrtho2D(0, self.width(), 0, self.height())
+
+        glMatrixMode(GL_MODELVIEW)
+        glPushMatrix()
+        glLoadIdentity()
+
+        glColor3f(1.0, 0.0, 0.0)
+
+        transformation_matrix = self.models[0].transformation_matrix
+        x, y, z, _ = transformation_matrix @ [1., 1., 1., 0.]
+        x, y = x + self.width() / 2, y + self.height() / 2
+
+        translate = [self.translate[i] / ([940, 625][i] / 2) for i in range(2)]
+        x, y = x + self.width() * -translate[1], y + self.height() * -translate[0]
+
+        glBegin(GL_QUADS)
+
+        glVertex2f(x, y)
+        glVertex2f(x, y + 100)
+        glVertex2f(x + 100, y + 100)
+        glVertex2f(x + 100, y)
+
+        glEnd()
+
+        glMatrixMode(GL_PROJECTION)
+        glPopMatrix()
+        glMatrixMode(GL_MODELVIEW)
+        glPopMatrix()
+
+        glFlush()
+
+        glUseProgram(self.shader)
+
     def initializeGL(self):
         model_mesh = stl.mesh.Mesh.from_file(".\\models\\statue.stl")
         self.models.append(GlModel(model_mesh.vectors, self))
@@ -139,7 +178,7 @@ class GlWidget(QGLWidget):
         image = Image.open(".\\models\\statue.png")
         self.images.append(GlImage(image, self))
 
-        self.model_loc, self.proj_loc, self.view_loc = display_setup(*self.grid.maxes)
+        self.model_loc, self.proj_loc, self.view_loc, self.shader = display_setup(*self.grid.maxes)
 
 
 if __name__ == '__main__':
