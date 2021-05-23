@@ -15,8 +15,8 @@ class MainWindow(QWidget):
 
 
 class GlWidget(QGLWidget):
-    def __init__(self, parent):
-        QGLWidget.__init__(self, parent)
+    def __init__(self, _, *__args):
+        super().__init__(*__args)
         self.setMinimumSize(640, 480)
 
     def mouseMoveEvent(self, a0: QMouseEvent) -> None:

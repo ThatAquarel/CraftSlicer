@@ -11,12 +11,15 @@ class GlModel:
         self.face_vertices, self.line_vertices, self.vertices, self.indices = vector_gl(vectors)
         self.maxes = np.amax(self.vertices, axis=0)
 
-        self.vao, self.vbo, self.ebo = create_vao(
-            [self.face_vertices, self.indices],
-            [self.line_vertices, self.indices])
+        self.vao, self.vbo, self.ebo = None, None, None
 
         self.transformation_matrix = None
         self.set_transformation_matrix()
+
+    def gl_calls(self):
+        self.vao, self.vbo, self.ebo = create_vao(
+            [self.face_vertices, self.indices],
+            [self.line_vertices, self.indices])
 
     def set_transformation_matrix(self):
         self.transformation_matrix = position_matrix(
@@ -49,10 +52,14 @@ class GlImage:
         self.widget = widget
 
         self.vertices, self.indices = image_gl(image, self.widget.visual_offset)
-        self.vao, self.vbo, self.ebo = create_vao([self.vertices, self.indices])
+
+        self.vao, self.vbo, self.ebo = None, None, None
 
         self.transformation_matrix = None
         self.set_transformation_matrix()
+
+    def gl_calls(self):
+        self.vao, self.vbo, self.ebo = create_vao([self.vertices, self.indices])
 
     def set_transformation_matrix(self):
         self.transformation_matrix = position_matrix(
@@ -72,10 +79,13 @@ class GlImage:
 
 
 class GlGrid:
-    def __init__(self, widget):
+    def __init__(self, widget, maxes=None):
         self.widget = widget
 
-        self.maxes = np.amax(np.array([model.maxes for model in self.widget.models]), axis=0)
+        if maxes:
+            self.maxes = maxes
+        else:
+            self.maxes = np.amax(np.array([model.maxes for model in self.widget.models]), axis=0)
 
         self.grid_vertices, self.grid_indices, self.widget.visual_offset = grid_gl(*self.maxes)
         self.vao, self.vbo, self.ebo = create_vao([self.grid_vertices, self.grid_indices])

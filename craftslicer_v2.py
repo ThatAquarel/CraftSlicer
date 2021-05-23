@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import *
 # noinspection PyUnresolvedReferences
 import qrc_resources
 from gl_widget import GlWidget
-from qt_widget import PropertiesEdit, ExpandConstraint, SeparatorLine
+from qt_widgets import PropertiesEdit, ExpandConstraint, SeparatorLine
 
 
 class MainWindow(QMainWindow):
@@ -20,7 +20,7 @@ class MainWindow(QMainWindow):
         self._create_menu_bar()
         self._create_toolbars()
 
-        self.canvas = GlWidget()
+        self.canvas = GlWidget(self)
         self.canvas.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
 
         self._create_left_layout()
@@ -66,8 +66,8 @@ class MainWindow(QMainWindow):
                 "Project B": ["file_b.csv", "photo.jpg"],
                 "Project C": []}
         self.tree = QTreeWidget()
-        self.tree.setColumnCount(2)
-        self.tree.setHeaderLabels(["Scene", "Visibility"])
+        self.tree.setColumnCount(1)
+        self.tree.setHeaderLabels(["Scene"])
         items = []
         for key, values in data.items():
             item = QTreeWidgetItem([key])

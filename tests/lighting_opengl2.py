@@ -5,7 +5,7 @@ import stl
 from OpenGL.GL import *
 from OpenGL.GL.shaders import compileProgram, compileShader
 
-from render import obj_mesh
+from render import vector_to_vertex_index
 
 vertex_src = """
 # version 330
@@ -97,7 +97,7 @@ glfw.set_window_size_callback(window, window_resize)
 glfw.make_context_current(window)
 
 model_mesh = stl.mesh.Mesh.from_file("..\\models\\statue.stl")
-cube_vertices, cube_indices = obj_mesh(model_mesh.vectors)
+cube_vertices, cube_indices = vector_to_vertex_index(model_mesh.vectors)
 
 cube_indices = np.array(cube_indices, dtype=int)
 cube_vertices = np.array(cube_vertices, dtype=np.float32)[cube_indices]

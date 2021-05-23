@@ -1,17 +1,15 @@
+import numpy as np
 import pygame
-import OpenGL
-from pygame.locals import *
+import stl
 from OpenGL.GL import *
 from OpenGL.GLU import *
-import pywavefront
-import numpy as np
-# scene = pywavefront.Wavefront('..\\models\\statue.stl', collect_faces=True)
-from render import obj_mesh
-import stl
+from pygame.locals import *
+
+from render import vector_to_vertex_index
 
 stl_model = stl.mesh.Mesh.from_file("..\\models\\TestTorus.stl")
 
-vertices, faces = obj_mesh(stl_model.vectors)
+vertices, faces = vector_to_vertex_index(stl_model.vectors)
 vertices, faces = np.array(vertices), np.array(faces)
 
 # from models import cube

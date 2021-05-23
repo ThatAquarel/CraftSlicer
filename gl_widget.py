@@ -4,14 +4,15 @@ import numpy as np
 import pyrr.matrix44
 import stl
 from OpenGL.GL import *
-from OpenGL.GLU import *
-from PyQt5.QtCore import Qt
+from PIL import Image
+from PyQt5.QtCore import Qt, QThreadPool, QMutex
 from PyQt5.QtGui import *
 from PyQt5.QtOpenGL import *
 from PyQt5.QtWidgets import *
 
 from gl_elements import GlModel, GlImage, GlGrid
 from gl_processor import display_setup
+from qt_threads import ImportRunnable
 
 
 class MainWindow(QMainWindow):
@@ -19,7 +20,7 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__(*args, **kwargs)
         self.setMinimumSize(1280, 720)
 
-        self.gl_widget = GlWidget()
+        self.gl_widget = GlWidget(self)
         self.gl_widget.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
 
         parent_layout = QHBoxLayout()
@@ -33,8 +34,10 @@ class MainWindow(QMainWindow):
 
 
 class GlWidget(QGLWidget):
-    def __init__(self, *__args):
+    def __init__(self, window, *__args):
         super().__init__(*__args)
+        self.window = window
+
         self.theta = [np.pi / 2, np.pi, 0]
         self.theta_ = [np.pi / 2, np.pi, 0]
 
@@ -52,6 +55,15 @@ class GlWidget(QGLWidget):
         self.models = []
         self.images = []
         self.grid = None
+
+        self.setAcceptDrops(True)
+        self.thread_pool = QThreadPool.globalInstance()
+
+        self.buffer_mutex = QMutex()
+        self.buffer_mutex.lock()
+        self.model_buffer = []
+        self.image_buffer = []
+        self.buffer_mutex.unlock()
 
     def update_view(self):
         view = pyrr.matrix44.create_look_at(pyrr.Vector3([self.grid.maxes[1] * self.zoom,
@@ -111,6 +123,18 @@ class GlWidget(QGLWidget):
         self.update_view()
         self.update()
 
+    def dragEnterEvent(self, e):
+        if e.mimeData().hasText():
+            files = [file.toLocalFile() for file in e.mimeData().urls() if
+                     file.toLocalFile().split(".")[1] in ["stl", "png", "jpg"]]
+            if files:
+                e.accept()
+                return
+        e.ignore()
+
+    def dropEvent(self, e: QDropEvent):
+        self.thread_pool.start(ImportRunnable(self, e.mimeData().urls()))
+
     def resizeGL(self, width: int, height: int):
         if height <= 0 or width <= 0:
             return
@@ -120,6 +144,21 @@ class GlWidget(QGLWidget):
         glUniformMatrix4fv(self.proj_loc, 1, GL_FALSE, projection_)
 
     def paintGL(self):
+        self.buffer_mutex.lock()
+
+        if self.model_buffer:
+            for model in self.model_buffer:
+                model.gl_calls()
+                self.models.append(model)
+            self.model_buffer = []
+        if self.image_buffer:
+            for image in self.image_buffer:
+                image.gl_calls()
+                self.images.append(image)
+            self.image_buffer = []
+
+        self.buffer_mutex.unlock()
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
         self.grid.draw()
@@ -130,53 +169,16 @@ class GlWidget(QGLWidget):
 
         glFlush()
 
-        glUseProgram(0)
-        glMatrixMode(GL_PROJECTION)
-        glPushMatrix()
-        glLoadIdentity()
-        glViewport(0, 0, self.width(), self.height())
-        gluOrtho2D(0, self.width(), 0, self.height())
-
-        glMatrixMode(GL_MODELVIEW)
-        glPushMatrix()
-        glLoadIdentity()
-
-        glColor3f(1.0, 0.0, 0.0)
-
-        transformation_matrix = self.models[0].transformation_matrix
-        x, y, z, _ = transformation_matrix @ [1., 1., 1., 0.]
-        x, y = x + self.width() / 2, y + self.height() / 2
-
-        translate = [self.translate[i] / ([940, 625][i] / 2) for i in range(2)]
-        x, y = x + self.width() * -translate[1], y + self.height() * -translate[0]
-
-        glBegin(GL_QUADS)
-
-        glVertex2f(x, y)
-        glVertex2f(x, y + 100)
-        glVertex2f(x + 100, y + 100)
-        glVertex2f(x + 100, y)
-
-        glEnd()
-
-        glMatrixMode(GL_PROJECTION)
-        glPopMatrix()
-        glMatrixMode(GL_MODELVIEW)
-        glPopMatrix()
-
-        glFlush()
-
-        glUseProgram(self.shader)
-
     def initializeGL(self):
-        model_mesh = stl.mesh.Mesh.from_file(".\\models\\statue.stl")
+        model_mesh = stl.mesh.Mesh.from_file(".\\models\\TestCube2cm.stl")
         self.models.append(GlModel(model_mesh.vectors, self))
+        [model.gl_calls() for model in self.models]
 
-        self.grid = GlGrid(self)
+        self.grid = GlGrid(self, maxes=[80, 80, 160])
 
-        from PIL import Image
-        image = Image.open(".\\models\\statue.png")
-        self.images.append(GlImage(image, self))
+        # image = Image.open(".\\models\\statue.png")
+        # self.images.append(GlImage(image, self))
+        # [image.gl_calls() for image in self.images]
 
         self.model_loc, self.proj_loc, self.view_loc, self.shader = display_setup(*self.grid.maxes)
 
@@ -184,5 +186,5 @@ class GlWidget(QGLWidget):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
-    window = MainWindow()
+    w = MainWindow()
     app.exec_()
