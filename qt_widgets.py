@@ -78,20 +78,21 @@ class PropertiesEdit(QWidget):
         self.parent_layout.setContentsMargins(0, 0, 0, 0)
 
 
-class ViewControls(QWidget):
+class RunWidget(QWidget):
     def __init__(self):
-        super(ViewControls, self).__init__()
-        self.parent_layout = QVBoxLayout(self)
-        self.parent_layout.setSizeConstraint(QLayout.SizeConstraint.SetFixedSize)
+        super(RunWidget, self).__init__()
+        self.parent_layout = QHBoxLayout(self)
 
-        self.pan = QPushButton()
-        self.pan.setIcon(QIcon(":pan.svg"))
-        self.parent_layout.addWidget(self.pan)
+        self.run_configs = QComboBox()
+        self.run_configs.addItems(["Run all", "Convert voxels", "Texture voxels"])
+        self.parent_layout.addWidget(self.run_configs)
 
-        self.rotate = QPushButton()
-        self.rotate.setIcon(QIcon(":view.svg"))
-        self.parent_layout.addWidget(self.rotate)
+        self.play = QPushButton()
+        self.play.setIcon(QIcon(":play.svg"))
+        self.parent_layout.addWidget(self.play)
 
-        self.zoom = QPushButton()
-        self.zoom.setIcon(QIcon(":zoom.svg"))
-        self.parent_layout.addWidget(self.zoom)
+        self.stop = QPushButton()
+        self.stop.setIcon(QIcon(":stop.svg"))
+        self.parent_layout.addWidget(self.stop)
+
+        self.parent_layout.setContentsMargins(0, 0, 0, 0)

@@ -174,7 +174,7 @@ class GlWidget(QGLWidget):
         glFlush()
 
     def initializeGL(self):
-        self.models.append(GlModel(".\\models\\TestCube2cm.stl", self))
+        self.models.append(GlModel(".\\models\\statue.stl", self))
         [model.gl_calls() for model in self.models]
 
         self.grid = GlGrid(self, maxes=[80, 80, 160])

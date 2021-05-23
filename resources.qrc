@@ -18,6 +18,9 @@
     <file alias="scale.svg">resources/model/scale.svg</file>
     <file alias="select.svg">resources/model/select.svg</file>
 
+    <file alias="play.svg">resources/run/play.svg</file>
+    <file alias="stop.svg">resources/run/stop.svg</file>
+
     <file alias="image.svg">resources/tree/image.svg</file>
     <file alias="model.svg">resources/tree/model.svg</file>
 

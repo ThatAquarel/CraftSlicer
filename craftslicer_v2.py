@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import *
 # noinspection PyUnresolvedReferences
 import qrc_resources
 from gl_widget import GlWidget
-from qt_widgets import PropertiesEdit, ExpandConstraint, SeparatorLine
+from qt_widgets import PropertiesEdit, ExpandConstraint, SeparatorLine, RunWidget
 
 
 class MainWindow(QMainWindow):
@@ -102,6 +102,7 @@ class MainWindow(QMainWindow):
 
     def _create_menu_bar(self):
         menu_bar = self.menuBar()
+
         file_menu = menu_bar.addMenu("&File")
         file_menu.addAction(self.new_action)
         file_menu.addAction(self.open_action)
@@ -122,6 +123,9 @@ class MainWindow(QMainWindow):
 
         help_menu = menu_bar.addMenu("&Help")
         help_menu.addAction(self.about_action)
+
+        run_widget = RunWidget()
+        menu_bar.setCornerWidget(run_widget, Qt.TopRightCorner)
 
     def _create_toolbars(self):
         self.edit_toolbar = self.addToolBar("Edit")
