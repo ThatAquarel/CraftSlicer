@@ -29,11 +29,9 @@ class ImportRunnable(QRunnable):
 
                 for file in self.files:
                     if file.split(".")[1] in ["stl"]:
-                        model_mesh = stl.mesh.Mesh.from_file(file)
-                        self.gl_widget.model_buffer.append(GlModel(model_mesh.vectors, self.gl_widget))
+                        self.gl_widget.model_buffer.append(GlModel(file, self.gl_widget))
                     elif file.split(".")[1] in ["png", "jpg"]:
-                        image = Image.open(file)
-                        self.gl_widget.image_buffer.append(GlImage(image, self.gl_widget))
+                        self.gl_widget.image_buffer.append(GlImage(file, self.gl_widget))
 
                 self.gl_widget.buffer_mutex.unlock()
 

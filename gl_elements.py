@@ -1,14 +1,20 @@
+import stl
+from PIL import Image
+
 from gl_processor import *
 
 
 class GlModel:
-    def __init__(self, vectors, widget):
+    def __init__(self, file, widget):
+        self.file = file
+        self.model_mesh = stl.mesh.Mesh.from_file(file)
+
         self.theta = [0, 0, 0]
         self.position = [0, 0, 0]
         self.scale = [1, 1, 1]
         self.widget = widget
 
-        self.face_vertices, self.line_vertices, self.vertices, self.indices = vector_gl(vectors)
+        self.face_vertices, self.line_vertices, self.vertices, self.indices = vector_gl(self.model_mesh.vectors)
         self.maxes = np.amax(self.vertices, axis=0)
 
         self.vao, self.vbo, self.ebo = None, None, None
@@ -45,13 +51,16 @@ class GlModel:
 
 
 class GlImage:
-    def __init__(self, image, widget):
+    def __init__(self, file, widget):
+        self.file = file
+        self.image = Image.open(file)
+
         self.theta = [0, 0, 0]
         self.position = [0, 0, 0]
         self.scale = [1, 1, 1]
         self.widget = widget
 
-        self.vertices, self.indices = image_gl(image, self.widget.visual_offset)
+        self.vertices, self.indices = image_gl(self.image, self.widget.visual_offset)
 
         self.vao, self.vbo, self.ebo = None, None, None
 

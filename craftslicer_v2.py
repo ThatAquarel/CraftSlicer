@@ -29,8 +29,6 @@ class MainWindow(QMainWindow):
         grid_layout = QGridLayout()
         grid_layout.addWidget(self.tree, 0, 0)
         grid_layout.addWidget(self.properties_tabs, 1, 0)
-        # grid_layout.addWidget(self.properties_tabs, 0, 0)
-        # grid_layout.addWidget(self.tree, 1, 0)
         grid_layout.setRowStretch(0, 1)
         grid_layout.setRowStretch(1, 1)
 
@@ -62,21 +60,9 @@ class MainWindow(QMainWindow):
         self.render_tabs.addTab(self.voxel_tab, "Voxel")
 
     def _create_right_layout(self):
-        data = {"Project A": ["file_a.py", "file_a.txt", "something.xls"],
-                "Project B": ["file_b.csv", "photo.jpg"],
-                "Project C": []}
         self.tree = QTreeWidget()
         self.tree.setColumnCount(1)
         self.tree.setHeaderLabels(["Scene"])
-        items = []
-        for key, values in data.items():
-            item = QTreeWidgetItem([key])
-            for value in values:
-                # ext = value.split(".")[-1].upper()
-                child = QTreeWidgetItem([value])
-                item.addChild(child)
-            items.append(item)
-        self.tree.insertTopLevelItems(0, items)
 
         self.properties_tabs = QTabWidget()
         self.properties_tabs.setTabPosition(QTabWidget.TabPosition.South)

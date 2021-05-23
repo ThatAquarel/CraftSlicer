@@ -1,15 +1,16 @@
+import os
 import sys
 
 import numpy as np
 import pyrr.matrix44
-import stl
 from OpenGL.GL import *
-from PIL import Image
 from PyQt5.QtCore import Qt, QThreadPool, QMutex
 from PyQt5.QtGui import *
 from PyQt5.QtOpenGL import *
 from PyQt5.QtWidgets import *
 
+# noinspection PyUnresolvedReferences
+import qrc_resources
 from gl_elements import GlModel, GlImage, GlGrid
 from gl_processor import display_setup
 from qt_threads import ImportRunnable
@@ -144,20 +145,23 @@ class GlWidget(QGLWidget):
         glUniformMatrix4fv(self.proj_loc, 1, GL_FALSE, projection_)
 
     def paintGL(self):
-        self.buffer_mutex.lock()
+        if self.model_buffer or self.image_buffer:
+            self.buffer_mutex.lock()
 
-        if self.model_buffer:
-            for model in self.model_buffer:
-                model.gl_calls()
-                self.models.append(model)
-            self.model_buffer = []
-        if self.image_buffer:
-            for image in self.image_buffer:
-                image.gl_calls()
-                self.images.append(image)
-            self.image_buffer = []
+            if self.model_buffer:
+                for model in self.model_buffer:
+                    model.gl_calls()
+                    self.models.append(model)
+                self.model_buffer = []
+            if self.image_buffer:
+                for image in self.image_buffer:
+                    image.gl_calls()
+                    self.images.append(image)
+                self.image_buffer = []
 
-        self.buffer_mutex.unlock()
+            self.buffer_mutex.unlock()
+
+            self.update_item_tree()
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
@@ -170,17 +174,33 @@ class GlWidget(QGLWidget):
         glFlush()
 
     def initializeGL(self):
-        model_mesh = stl.mesh.Mesh.from_file(".\\models\\TestCube2cm.stl")
-        self.models.append(GlModel(model_mesh.vectors, self))
+        self.models.append(GlModel(".\\models\\TestCube2cm.stl", self))
         [model.gl_calls() for model in self.models]
 
         self.grid = GlGrid(self, maxes=[80, 80, 160])
 
-        # image = Image.open(".\\models\\statue.png")
-        # self.images.append(GlImage(image, self))
-        # [image.gl_calls() for image in self.images]
+        self.images.append(GlImage(".\\models\\statue.png", self))
+        [image.gl_calls() for image in self.images]
 
         self.model_loc, self.proj_loc, self.view_loc, self.shader = display_setup(*self.grid.maxes)
+
+        self.update_item_tree()
+
+    def update_item_tree(self):
+        items = [QTreeWidgetItem([category]) for category in ["Models", "Textures"]]
+        for model in self.models:
+            child = QTreeWidgetItem([os.path.basename(model.file)])
+            child.setIcon(0, QIcon(":model.svg"))
+            items[0].addChild(child)
+        for image in self.images:
+            child = QTreeWidgetItem([os.path.basename(image.file)])
+            child.setIcon(0, QIcon(":image.svg"))
+            items[1].addChild(child)
+
+        self.window.tree.clear()
+        self.window.tree.insertTopLevelItems(0, items)
+        self.window.tree.expandAll()
+        self.window.tree.update()
 
 
 if __name__ == '__main__':
