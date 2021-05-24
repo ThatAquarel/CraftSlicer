@@ -175,11 +175,13 @@ def display_setup(x_max, y_max, _):
     return model_loc, proj_loc, view_loc, shader
 
 
-def position_matrix(theta, pos, scale):
+def position_matrix(theta, pos, scale, reverse=False):
     pos_matrix = pyrr.matrix44.create_from_translation(pyrr.Vector3(pos))
     scale_matrix = pyrr.matrix44.create_from_scale(pyrr.Vector3(scale))
     rot_x = pyrr.Matrix44.from_x_rotation(theta[0])
     rot_y = pyrr.Matrix44.from_y_rotation(theta[1])
     rot_z = pyrr.Matrix44.from_z_rotation(theta[2])
 
+    if reverse:
+        return scale_matrix @ pos_matrix @ rot_z @ rot_y @ rot_x
     return rot_x @ rot_y @ rot_z @ pos_matrix @ scale_matrix

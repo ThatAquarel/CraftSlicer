@@ -1,5 +1,6 @@
 import os
 
+import numpy as np
 import stl
 from PIL import Image
 
@@ -33,10 +34,8 @@ class GlModel:
             [self.line_vertices, self.indices])
 
     def set_transformation_matrix(self):
-        self.transformation_matrix = position_matrix(
-            [theta + theta_ for theta, theta_ in zip(self.widget.theta, self.theta)],
-            self.position,
-            self.scale)
+        self.transformation_matrix = position_matrix(self.theta, self.position, self.scale, reverse=True) \
+                                     @ position_matrix(self.widget.theta, [0., 0., 0.], [1., 1., 1.])
 
     def draw(self):
         self.set_transformation_matrix()
@@ -82,10 +81,8 @@ class GlImage:
         self.vao, self.vbo, self.ebo = create_vao([self.vertices, self.indices])
 
     def set_transformation_matrix(self):
-        self.transformation_matrix = position_matrix(
-            [theta + theta_ for theta, theta_ in zip(self.widget.theta, self.theta)],
-            self.position,
-            self.scale)
+        self.transformation_matrix = position_matrix(self.theta, self.position, self.scale, reverse=True) \
+                                     @ position_matrix(self.widget.theta, [0., 0., 0.], [1., 1., 1.])
 
     def draw(self):
         self.set_transformation_matrix()

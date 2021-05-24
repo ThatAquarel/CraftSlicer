@@ -70,6 +70,7 @@ class GlWidget(QGLWidget):
         self.buffer_mutex.unlock()
 
         self.window.run_widget.play.clicked.connect(self.run_function)
+        self.window.tree.itemClicked.connect(self.tree_item_click)
 
     def run_function(self):
         # print(self.window.run_widget.run_configs.currentText())
@@ -178,6 +179,7 @@ class GlWidget(QGLWidget):
 
             self.update_item_tree()
             self.grid = GlGrid(self)
+            self.grid.gl_calls()
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
@@ -217,6 +219,51 @@ class GlWidget(QGLWidget):
         self.window.tree.insertTopLevelItems(0, items)
         self.window.tree.expandAll()
         self.window.tree.update()
+
+    def tree_item_click(self, item: QTreeWidgetItem, column):
+        model_dict = {model.filename: model for model in self.models}
+        image_dict = {image.filename: image for image in self.images}
+
+        labels = {"X": 0, "Y": 1, "Z": 2}
+
+        if item.text(column) in model_dict:
+            element = model_dict[item.text(column)]
+        elif item.text(column) in image_dict:
+            element = image_dict[item.text(column)]
+        else:
+            return
+
+        def rotation_callback(value_label: str, value: float):
+            element.theta[labels[value_label]] = value
+            self.update()
+
+        def position_callback(value_label: str, value: float):
+            element.position[labels[value_label]] = value
+            self.update()
+
+        def scale_callback(value_label: str, value: float):
+            element.scale[labels[value_label]] = value
+            self.update()
+
+        for property_callback, property_element, property_values in zip([rotation_callback,
+                                                                         position_callback,
+                                                                         scale_callback],
+                                                                        [self.window.obj_rotation_edit,
+                                                                         self.window.obj_location_edit,
+                                                                         self.window.obj_scale_edit],
+                                                                        [element.theta,
+                                                                         element.position,
+                                                                         element.scale]):
+            for (_, widget), property_value in zip(property_element.properties_widgets.items(), property_values):
+                try:
+                    widget.value_edited.disconnect()
+                except TypeError:
+                    pass
+                widget.value = property_value
+                widget.update_text_box()
+                widget.value_edited.connect(property_callback)
+
+        self.window.property_label.setText(item.text(column))
 
 
 if __name__ == '__main__':

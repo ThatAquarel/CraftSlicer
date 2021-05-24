@@ -20,11 +20,10 @@ class MainWindow(QMainWindow):
         self._create_menu_bar()
         self._create_toolbars()
 
+        self._create_right_layout()
         self.model_canvas = GlWidget(self)
         self.model_canvas.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
-
         self._create_left_layout()
-        self._create_right_layout()
 
         grid_layout = QGridLayout()
         grid_layout.addWidget(self.tree, 0, 0)
@@ -63,11 +62,18 @@ class MainWindow(QMainWindow):
 
         self.property_label = QLabel("Properties")
         self.obj_properties_tab_layout.addWidget(self.property_label)
-        self.obj_properties_tab_layout.addWidget(PropertiesEdit("Location"))
         self.obj_properties_tab_layout.addWidget(SeparatorLine())
-        self.obj_properties_tab_layout.addWidget(PropertiesEdit("Rotation"))
+
+        self.obj_location_edit = PropertiesEdit("Location", button_step=1.)
+        self.obj_properties_tab_layout.addWidget(self.obj_location_edit)
         self.obj_properties_tab_layout.addWidget(SeparatorLine())
-        self.obj_properties_tab_layout.addWidget(PropertiesEdit("Scale"))
+
+        self.obj_rotation_edit = PropertiesEdit("Rotation")
+        self.obj_properties_tab_layout.addWidget(self.obj_rotation_edit)
+        self.obj_properties_tab_layout.addWidget(SeparatorLine())
+
+        self.obj_scale_edit = PropertiesEdit("Scale", default_value=1)
+        self.obj_properties_tab_layout.addWidget(self.obj_scale_edit)
         self.obj_properties_tab_layout.addWidget(ExpandConstraint())
         self.obj_properties_tab.setLayout(self.obj_properties_tab_layout)
 

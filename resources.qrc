@@ -25,6 +25,8 @@
     <file alias="image.svg">resources/tree/image.svg</file>
     <file alias="model.svg">resources/tree/model.svg</file>
     <file alias="voxel.svg">resources/tree/voxel.svg</file>
+    <file alias="visibility_on.svg">resources/tree/visibility_on.svg</file>
+    <file alias="visibility_off.svg">resources/tree/visibility_off.svg</file>
 
     <file alias="pan.svg">resources/view/pan.svg</file>
     <file alias="view.svg">resources/view/rotate.svg</file>
