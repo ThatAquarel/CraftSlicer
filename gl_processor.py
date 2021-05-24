@@ -65,7 +65,7 @@ def image_gl(image, maxes):
     ]).reshape((-1, image.shape[-1]))
 
     if image.shape[-1] == 3:
-        alpha = np.ones(image.shape[0], dtype=np.float32) * 0.5
+        alpha = np.ones(image.flatten().shape[0] * 2, dtype=np.float32) * 0.5
         colors = np.insert(colors, image.shape[-1], alpha, axis=1)
     colors[:, 3] = 0.5
 

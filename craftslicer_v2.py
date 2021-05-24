@@ -20,8 +20,8 @@ class MainWindow(QMainWindow):
         self._create_menu_bar()
         self._create_toolbars()
 
-        self.canvas = GlWidget(self)
-        self.canvas.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+        self.model_canvas = GlWidget(self)
+        self.model_canvas.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
 
         self._create_left_layout()
         self._create_right_layout()
@@ -33,7 +33,7 @@ class MainWindow(QMainWindow):
         grid_layout.setRowStretch(1, 1)
 
         parent_layout = QGridLayout()
-        parent_layout.addWidget(self.render_tabs, 0, 0)
+        parent_layout.addLayout(self.model_tab_layout, 0, 0)
         parent_layout.addLayout(grid_layout, 0, 1)
         parent_layout.setColumnStretch(0, 4)
         parent_layout.setColumnStretch(1, 1)
@@ -45,19 +45,11 @@ class MainWindow(QMainWindow):
         self.show()
 
     def _create_left_layout(self):
-        self.render_tabs = QTabWidget()
-        self.model_tab = QWidget()
-        self.voxel_tab = QWidget()
-
-        model_tab_layout = QHBoxLayout()
-        model_tab_layout.addWidget(self.canvas)
-        model_tab_layout.addWidget(self.edit_toolbar)
+        self.model_tab_layout = QHBoxLayout()
+        self.model_tab_layout.addWidget(self.model_canvas)
+        self.model_tab_layout.addWidget(self.edit_toolbar)
         self.edit_toolbar.show()
         self.edit_toolbar.setOrientation(Qt.Vertical)
-        self.model_tab.setLayout(model_tab_layout)
-
-        self.render_tabs.addTab(self.model_tab, "Model")
-        self.render_tabs.addTab(self.voxel_tab, "Voxel")
 
     def _create_right_layout(self):
         self.tree = QTreeWidget()
@@ -69,6 +61,8 @@ class MainWindow(QMainWindow):
         self.obj_properties_tab = QWidget()
         self.obj_properties_tab_layout = QVBoxLayout()
 
+        self.property_label = QLabel("Properties")
+        self.obj_properties_tab_layout.addWidget(self.property_label)
         self.obj_properties_tab_layout.addWidget(PropertiesEdit("Location"))
         self.obj_properties_tab_layout.addWidget(SeparatorLine())
         self.obj_properties_tab_layout.addWidget(PropertiesEdit("Rotation"))
@@ -124,8 +118,8 @@ class MainWindow(QMainWindow):
         help_menu = menu_bar.addMenu("&Help")
         help_menu.addAction(self.about_action)
 
-        run_widget = RunWidget()
-        menu_bar.setCornerWidget(run_widget, Qt.TopRightCorner)
+        self.run_widget = RunWidget()
+        menu_bar.setCornerWidget(self.run_widget, Qt.TopRightCorner)
 
     def _create_toolbars(self):
         self.edit_toolbar = self.addToolBar("Edit")

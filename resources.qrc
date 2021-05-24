@@ -21,8 +21,10 @@
     <file alias="play.svg">resources/run/play.svg</file>
     <file alias="stop.svg">resources/run/stop.svg</file>
 
+    <file alias="grid.svg">resources/tree/grid.svg</file>
     <file alias="image.svg">resources/tree/image.svg</file>
     <file alias="model.svg">resources/tree/model.svg</file>
+    <file alias="voxel.svg">resources/tree/voxel.svg</file>
 
     <file alias="pan.svg">resources/view/pan.svg</file>
     <file alias="view.svg">resources/view/rotate.svg</file>

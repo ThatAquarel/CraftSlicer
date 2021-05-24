@@ -1,4 +1,3 @@
-import os
 import sys
 
 import numpy as np
@@ -13,7 +12,7 @@ from PyQt5.QtWidgets import *
 import qrc_resources
 from gl_elements import GlModel, GlImage, GlGrid
 from gl_processor import display_setup
-from qt_threads import ImportRunnable
+from qt_threads import ImportRunnable, ConvertVoxelsRunnable, TextureVoxelsRunnable
 
 
 class MainWindow(QMainWindow):
@@ -55,7 +54,11 @@ class GlWidget(QGLWidget):
         self.model_loc, self.proj_loc, self.view_loc, self.shader = None, None, None, None
         self.models = []
         self.images = []
-        self.grid = None
+        self.voxels = []
+
+        self.models.append(GlModel(".\\models\\statue.stl", self))
+        self.grid = GlGrid(self)
+        self.images.append(GlImage(".\\models\\statue.png", self))
 
         self.setAcceptDrops(True)
         self.thread_pool = QThreadPool.globalInstance()
@@ -65,6 +68,18 @@ class GlWidget(QGLWidget):
         self.model_buffer = []
         self.image_buffer = []
         self.buffer_mutex.unlock()
+
+        self.window.run_widget.play.clicked.connect(self.run_function)
+
+    def run_function(self):
+        # print(self.window.run_widget.run_configs.currentText())
+        run_options = {
+            "Convert voxels": [ConvertVoxelsRunnable, [self]],
+            "Texture voxels": [TextureVoxelsRunnable, []]
+        }
+        run = run_options[self.window.run_widget.run_configs.currentText()][0]
+        args = run_options[self.window.run_widget.run_configs.currentText()][1]
+        self.thread_pool.start(run(*args))
 
     def update_view(self):
         view = pyrr.matrix44.create_look_at(pyrr.Vector3([self.grid.maxes[1] * self.zoom,
@@ -127,7 +142,7 @@ class GlWidget(QGLWidget):
     def dragEnterEvent(self, e):
         if e.mimeData().hasText():
             files = [file.toLocalFile() for file in e.mimeData().urls() if
-                     file.toLocalFile().split(".")[1] in ["stl", "png", "jpg"]]
+                     file.toLocalFile().split(".")[1].upper() in ["STL", "PNG", "JPG"]]
             if files:
                 e.accept()
                 return
@@ -162,6 +177,7 @@ class GlWidget(QGLWidget):
             self.buffer_mutex.unlock()
 
             self.update_item_tree()
+            self.grid = GlGrid(self)
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
@@ -174,12 +190,8 @@ class GlWidget(QGLWidget):
         glFlush()
 
     def initializeGL(self):
-        self.models.append(GlModel(".\\models\\statue.stl", self))
         [model.gl_calls() for model in self.models]
-
-        self.grid = GlGrid(self, maxes=[80, 80, 160])
-
-        self.images.append(GlImage(".\\models\\statue.png", self))
+        self.grid.gl_calls()
         [image.gl_calls() for image in self.images]
 
         self.model_loc, self.proj_loc, self.view_loc, self.shader = display_setup(*self.grid.maxes)
@@ -187,15 +199,19 @@ class GlWidget(QGLWidget):
         self.update_item_tree()
 
     def update_item_tree(self):
-        items = [QTreeWidgetItem([category]) for category in ["Models", "Textures"]]
+        items = [QTreeWidgetItem([category]) for category in ["Environment", "Models", "Textures", "Voxels"]]
+
+        grid_item = QTreeWidgetItem(["Grid"])
+        grid_item.setIcon(0, QIcon(":grid.svg"))
+        items[0].addChild(grid_item)
         for model in self.models:
-            child = QTreeWidgetItem([os.path.basename(model.file)])
+            child = QTreeWidgetItem([model.filename])
             child.setIcon(0, QIcon(":model.svg"))
-            items[0].addChild(child)
-        for image in self.images:
-            child = QTreeWidgetItem([os.path.basename(image.file)])
-            child.setIcon(0, QIcon(":image.svg"))
             items[1].addChild(child)
+        for image in self.images:
+            child = QTreeWidgetItem([image.filename])
+            child.setIcon(0, QIcon(":image.svg"))
+            items[2].addChild(child)
 
         self.window.tree.clear()
         self.window.tree.insertTopLevelItems(0, items)

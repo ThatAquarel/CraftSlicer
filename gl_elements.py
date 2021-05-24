@@ -1,3 +1,5 @@
+import os
+
 import stl
 from PIL import Image
 
@@ -7,6 +9,7 @@ from gl_processor import *
 class GlModel:
     def __init__(self, file, widget):
         self.file = file
+        self.filename = os.path.basename(self.file)
         self.model_mesh = stl.mesh.Mesh.from_file(file)
 
         self.theta = [0, 0, 0]
@@ -22,6 +25,8 @@ class GlModel:
         self.transformation_matrix = None
         self.set_transformation_matrix()
 
+        self.visible = True
+
     def gl_calls(self):
         self.vao, self.vbo, self.ebo = create_vao(
             [self.face_vertices, self.indices],
@@ -35,6 +40,9 @@ class GlModel:
 
     def draw(self):
         self.set_transformation_matrix()
+
+        if not self.visible:
+            return
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
         glBindVertexArray(self.vao[0])
@@ -53,6 +61,7 @@ class GlModel:
 class GlImage:
     def __init__(self, file, widget):
         self.file = file
+        self.filename = os.path.basename(self.file)
         self.image = Image.open(file)
 
         self.theta = [0, 0, 0]
@@ -60,12 +69,14 @@ class GlImage:
         self.scale = [1, 1, 1]
         self.widget = widget
 
-        self.vertices, self.indices = image_gl(self.image, self.widget.visual_offset)
+        self.vertices, self.indices = image_gl(self.image, self.widget.grid_maxes)
 
         self.vao, self.vbo, self.ebo = None, None, None
 
         self.transformation_matrix = None
         self.set_transformation_matrix()
+
+        self.visible = True
 
     def gl_calls(self):
         self.vao, self.vbo, self.ebo = create_vao([self.vertices, self.indices])
@@ -78,6 +89,9 @@ class GlImage:
 
     def draw(self):
         self.set_transformation_matrix()
+
+        if not self.visible:
+            return
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
         glBindVertexArray(self.vao)
@@ -94,9 +108,13 @@ class GlGrid:
         if maxes:
             self.maxes = maxes
         else:
-            self.maxes = np.amax(np.array([model.maxes for model in self.widget.models]), axis=0)
+            self.maxes = np.sum([model.maxes for model in self.widget.models], axis=0)
 
-        self.grid_vertices, self.grid_indices, self.widget.visual_offset = grid_gl(*self.maxes)
+        self.grid_vertices, self.grid_indices, self.widget.grid_maxes = grid_gl(*self.maxes)
+        self.grid_maxes = self.widget.grid_maxes
+        self.vao, self.vbo, self.ebo = None, None, None
+
+    def gl_calls(self):
         self.vao, self.vbo, self.ebo = create_vao([self.grid_vertices, self.grid_indices])
 
     def draw(self):

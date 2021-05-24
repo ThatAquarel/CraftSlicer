@@ -84,15 +84,12 @@ class RunWidget(QWidget):
         self.parent_layout = QHBoxLayout(self)
 
         self.run_configs = QComboBox()
-        self.run_configs.addItems(["Run all", "Convert voxels", "Texture voxels"])
+        # self.run_configs.addItems(["Run all", "Convert voxels", "Texture voxels"])
+        self.run_configs.addItems(["Convert voxels", "Texture voxels"])
         self.parent_layout.addWidget(self.run_configs)
 
         self.play = QPushButton()
         self.play.setIcon(QIcon(":play.svg"))
         self.parent_layout.addWidget(self.play)
-
-        self.stop = QPushButton()
-        self.stop.setIcon(QIcon(":stop.svg"))
-        self.parent_layout.addWidget(self.stop)
 
         self.parent_layout.setContentsMargins(0, 0, 0, 0)

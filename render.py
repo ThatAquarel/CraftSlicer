@@ -87,7 +87,7 @@ class Render:
         self.ax.set_xlim(-x_lim, +x_lim)
         self.collection.set(verts=render[0])
         self.collection.set(facecolor=render[1])
-        self.fig.canvas.draw_idle()
+        self.fig.model_canvas.draw_idle()
 
     def on_move(self, event):
         if not self.press or not event.inaxes:
