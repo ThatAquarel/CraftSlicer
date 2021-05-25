@@ -3,14 +3,40 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 
 from gl_elements import GlModel, GlImage, GlVoxel
-from model_processor import convert_voxels, matplotlib_show_voxel
+from model_processor import convert_voxels
 
 
-# noinspection PyUnresolvedReferences
-class ImportRunnable(QRunnable):
+class Runnable(QRunnable):
+    def __init__(self, thread, thread_args, progress_dialog_label):
+        super().__init__()
+
+        self.thread = thread(*thread_args)
+
+        self.progress_dialog = QProgressDialog(progress_dialog_label, "Cancel", 0, 0)
+        self.progress_dialog.setValue(0)
+
+        self.progress_dialog.setWindowFlags(
+            self.progress_dialog.windowFlags() &
+            ~Qt.WindowCloseButtonHint &
+            Qt.WindowSystemMenuHint | Qt.WindowTitleHint)
+
+        self.progress_dialog.canceled.connect(self.cancel)
+        self.progress_dialog.show()
+
+    def run(self):
+        self.thread.start()
+        self.thread.wait()
+
+    def cancel(self):
+        self.thread.terminate()
+        self.thread.wait()
+
+        self.progress_dialog.reset()
+        self.progress_dialog.close()
+
+
+class ImportRunnable(Runnable):
     def __init__(self, gl_widget, files):
-        super(ImportRunnable, self).__init__()
-
         files = [file.toLocalFile() for file in files if
                  file.toLocalFile().split(".")[1].upper() in ["STL", "PNG", "JPG"]]
         if not files:
@@ -34,41 +60,16 @@ class ImportRunnable(QRunnable):
 
                 self.gl_widget.buffer_mutex.unlock()
 
-        self.thread = Thread(gl_widget, files)
-
-        self.progress_dialog = QProgressDialog("".join("{0}\n".format(file) for file in files), "Cancel", 0, 0)
-        self.progress_dialog.setValue(0)
-
-        self.progress_dialog.setWindowFlags(
-            self.progress_dialog.windowFlags() &
-            ~Qt.WindowCloseButtonHint &
-            Qt.WindowSystemMenuHint | Qt.WindowTitleHint)
-
-        self.progress_dialog.canceled.connect(self.cancel)
-        self.progress_dialog.show()
-
-    def run(self):
-        self.thread.start()
-        self.thread.wait()
-
-    def cancel(self):
-        self.thread.terminate()
-        self.thread.wait()
-
-        self.progress_dialog.reset()
-        self.progress_dialog.close()
+        super(ImportRunnable, self).__init__(Thread, [gl_widget, files],
+                                             "".join("{0}\n".format(file) for file in files))
 
 
-# noinspection PyUnresolvedReferences
-class ConvertVoxelsRunnable(QRunnable):
+class ConvertVoxelsRunnable(Runnable):
     def __init__(self, gl_widget):
-        super(ConvertVoxelsRunnable, self).__init__()
-
         class Thread(QThread):
-            def __init__(self, progress_dialog, gl_widget_):
+            def __init__(self, gl_widget_):
                 super(Thread, self).__init__()
 
-                self.progress_dialog = progress_dialog
                 self.gl_widget = gl_widget_
 
             def run(self):
@@ -78,29 +79,7 @@ class ConvertVoxelsRunnable(QRunnable):
                 self.gl_widget.voxel_buffer.append(GlVoxel(voxel, self.gl_widget))
                 self.gl_widget.buffer_mutex.unlock()
 
-        self.progress_dialog = QProgressDialog("Converting voxels", "Cancel", 0, 0)
-        self.progress_dialog.setValue(0)
-
-        self.progress_dialog.setWindowFlags(
-            self.progress_dialog.windowFlags() &
-            ~Qt.WindowCloseButtonHint &
-            Qt.WindowSystemMenuHint | Qt.WindowTitleHint)
-
-        self.progress_dialog.canceled.connect(self.cancel)
-        self.progress_dialog.show()
-
-        self.thread = Thread(self.progress_dialog, gl_widget)
-
-    def run(self):
-        self.thread.start()
-        self.thread.wait()
-
-    def cancel(self):
-        self.thread.terminate()
-        self.thread.wait()
-
-        self.progress_dialog.reset()
-        self.progress_dialog.close()
+        super(ConvertVoxelsRunnable, self).__init__(Thread, [gl_widget], "Converting voxels")
 
 
 class TextureVoxelsRunnable(QRunnable):
