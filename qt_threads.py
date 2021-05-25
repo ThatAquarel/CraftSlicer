@@ -2,7 +2,7 @@ from PyQt5.QtCore import Qt, QRunnable, QThread
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 
-from gl_elements import GlModel, GlImage
+from gl_elements import GlModel, GlImage, GlVoxel
 from model_processor import convert_voxels, matplotlib_show_voxel
 
 
@@ -72,8 +72,11 @@ class ConvertVoxelsRunnable(QRunnable):
                 self.gl_widget = gl_widget_
 
             def run(self):
-                voxels = convert_voxels(self.gl_widget.models, self.gl_widget.grid)
-                # matplotlib_show_voxel(voxels, self.gl_widget.grid.grid_maxes)
+                voxel = convert_voxels(self.gl_widget.models, self.gl_widget.grid)
+
+                self.gl_widget.buffer_mutex.lock()
+                self.gl_widget.voxel_buffer.append(GlVoxel(voxel, self.gl_widget))
+                self.gl_widget.buffer_mutex.unlock()
 
         self.progress_dialog = QProgressDialog("Converting voxels", "Cancel", 0, 0)
         self.progress_dialog.setValue(0)

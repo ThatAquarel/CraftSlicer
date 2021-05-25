@@ -5,10 +5,10 @@ from OpenGL.GL.shaders import compileProgram, compileShader
 
 from gl_shaders import vertex_shader, fragment_shader
 from render import vector_to_vertex_index
+from models import cube
 
 
 # noinspection DuplicatedCode
-# def vector_gl(face_vertices, indices):
 def vector_gl(vectors):
     face_vertices, indices = vector_to_vertex_index(vectors)
 
@@ -77,6 +77,33 @@ def image_gl(image, maxes):
         vertices[:, column] -= max_ / 2
 
     return vertices.flatten().astype(np.float32), indices.flatten().astype(np.uint32)
+
+
+def voxel_gl(voxels, maxes):
+    cube_vertices, cube_indices = cube
+    cube_vertices, cube_indices = np.array(cube_vertices).astype(float), np.array(cube_indices).astype(int)
+
+    vectors = cube_vertices[cube_indices].reshape((-1, 3))
+    voxel_indices = np.argwhere(voxels == 1)
+    vectors = np.tile(vectors, (voxel_indices.shape[0], 1))
+    voxel_indices = np.repeat(voxel_indices, 36, axis=0)
+    vectors = vectors + voxel_indices
+
+    vertices, indices = vector_to_vertex_index(vectors)
+    vertices, indices = np.array(vertices).reshape((-1, 3)), np.array(indices)
+
+    face_colors = np.repeat([[0.7, 0.7, 0.7, 1.0]], vertices.shape[0], axis=0)
+    line_colors = np.repeat([[1.0, 1.0, 1.0, 1.0]], vertices.shape[0], axis=0)
+
+    face_vertices = np.concatenate((vertices, face_colors), axis=1)
+    line_vertices = np.concatenate((vertices, line_colors), axis=1)
+
+    for vertices_ in [face_vertices, line_vertices]:
+        for column, max_ in zip([0, 1, 2], maxes):
+            vertices_[:, column] -= max_ / 2
+
+    return face_vertices.astype(np.float32), line_vertices.flatten().astype(np.float32), vertices, indices.astype(
+        np.uint32)
 
 
 # noinspection DuplicatedCode

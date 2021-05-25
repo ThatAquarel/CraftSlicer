@@ -67,6 +67,7 @@ class GlWidget(QGLWidget):
         self.buffer_mutex.lock()
         self.model_buffer = []
         self.image_buffer = []
+        self.voxel_buffer = []
         self.buffer_mutex.unlock()
 
         self.window.run_widget.play.clicked.connect(self.run_function)
@@ -161,7 +162,7 @@ class GlWidget(QGLWidget):
         glUniformMatrix4fv(self.proj_loc, 1, GL_FALSE, projection_)
 
     def paintGL(self):
-        if self.model_buffer or self.image_buffer:
+        if self.model_buffer or self.image_buffer or self.voxel_buffer:
             self.buffer_mutex.lock()
 
             if self.model_buffer:
@@ -174,6 +175,11 @@ class GlWidget(QGLWidget):
                     image.gl_calls()
                     self.images.append(image)
                 self.image_buffer = []
+            if self.voxel_buffer:
+                for voxel in self.voxel_buffer:
+                    voxel.gl_calls()
+                    self.voxels.append(voxel)
+                self.voxel_buffer = []
 
             self.buffer_mutex.unlock()
 
@@ -188,6 +194,8 @@ class GlWidget(QGLWidget):
             model.draw()
         for image in self.images:
             image.draw()
+        for voxel in self.voxels:
+            voxel.draw()
 
         glFlush()
 
@@ -214,6 +222,10 @@ class GlWidget(QGLWidget):
             child = QTreeWidgetItem([image.filename])
             child.setIcon(0, QIcon(":image.svg"))
             items[2].addChild(child)
+        for i, voxel in enumerate(self.voxels):
+            child = QTreeWidgetItem(["voxels #%i" % i])
+            child.setIcon(0, QIcon(":voxel.svg"))
+            items[3].addChild(child)
 
         self.window.tree.clear()
         self.window.tree.insertTopLevelItems(0, items)
