@@ -75,6 +75,9 @@ class GlVoxel(GlElement):
     def __init__(self, voxel, widget):
         super().__init__(widget)
 
+        self.voxels = voxel
+        self.colors = None
+
         self.face_vertices, self.line_vertices, self.vertices, self.indices = voxel_gl(voxel, self.widget.grid_maxes)
 
 
@@ -84,9 +87,10 @@ class GlImage(GlElementSimple):
 
         self.file = file
         self.filename = os.path.basename(self.file)
-        self.image = Image.open(file)
+        self.pil_image = Image.open(file)
 
-        self.vertices, self.indices = image_gl(self.image, self.widget.grid_maxes)
+        self.maxes = [i for i in self.widget.grid_maxes]
+        self.vertices, self.indices, self.size, self.image = image_gl(self.pil_image, self.widget.grid_maxes)
 
     def draw(self):
         self.set_transformation_matrix()

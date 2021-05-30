@@ -3,16 +3,16 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 
 from gl_elements import GlModel, GlImage, GlVoxel
-from model_processor import convert_voxels
+from model_processor import convert_voxels, texture_voxels
 
 
 class Runnable(QRunnable):
-    def __init__(self, thread, thread_args, progress_dialog_label):
+    def __init__(self, thread, thread_args, progress_dialog_label, progress_dialog_max):
         super().__init__()
 
         self.thread = thread(*thread_args)
 
-        self.progress_dialog = QProgressDialog(progress_dialog_label, "Cancel", 0, 0)
+        self.progress_dialog = QProgressDialog(progress_dialog_label, "Cancel", 0, progress_dialog_max)
         self.progress_dialog.setValue(0)
 
         self.progress_dialog.setWindowFlags(
@@ -61,7 +61,7 @@ class ImportRunnable(Runnable):
                 self.gl_widget.buffer_mutex.unlock()
 
         super(ImportRunnable, self).__init__(Thread, [gl_widget, files],
-                                             "".join("{0}\n".format(file) for file in files))
+                                             "".join("{0}\n".format(file) for file in files), 0)
 
 
 class ConvertVoxelsRunnable(Runnable):
@@ -79,10 +79,21 @@ class ConvertVoxelsRunnable(Runnable):
                 self.gl_widget.voxel_buffer.append(GlVoxel(voxel, self.gl_widget))
                 self.gl_widget.buffer_mutex.unlock()
 
-        super(ConvertVoxelsRunnable, self).__init__(Thread, [gl_widget], "Converting voxels")
+        super(ConvertVoxelsRunnable, self).__init__(Thread, [gl_widget], "Converting voxels", 0)
 
 
-class TextureVoxelsRunnable(QRunnable):
-    def __init__(self):
-        super(TextureVoxelsRunnable, self).__init__()
-        pass
+class TextureVoxelsRunnable(Runnable):
+    def __init__(self, gl_widget):
+        class Thread(QThread):
+            def __init__(self, gl_widget_):
+                super(Thread, self).__init__()
+
+                self.gl_widget = gl_widget_
+
+            def run(self):
+                if not self.gl_widget.voxels:
+                    return
+
+                texture_voxels(self.gl_widget.voxels, self.gl_widget.images)
+
+        super(TextureVoxelsRunnable, self).__init__(Thread, [gl_widget], "Texturing voxels", 0)

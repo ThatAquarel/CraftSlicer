@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import *
 
 # noinspection PyUnresolvedReferences
 import qrc_resources
-from gl_elements import GlModel, GlImage, GlGrid
+from gl_elements import GlModel, GlImage, GlVoxel, GlGrid
 from gl_processor import display_setup
 from qt_threads import ImportRunnable, ConvertVoxelsRunnable, TextureVoxelsRunnable
 
@@ -52,9 +52,9 @@ class GlWidget(QGLWidget):
         self.is_translate = False
 
         self.model_loc, self.proj_loc, self.view_loc, self.shader = None, None, None, None
-        self.models = []
-        self.images = []
-        self.voxels = []
+        self.models: list[GlModel] = []
+        self.images: list[GlImage] = []
+        self.voxels: list[GlVoxel] = []
 
         self.models.append(GlModel(".\\models\\statue.stl", self))
         self.grid = GlGrid(self)
@@ -65,19 +65,18 @@ class GlWidget(QGLWidget):
 
         self.buffer_mutex = QMutex()
         self.buffer_mutex.lock()
-        self.model_buffer = []
-        self.image_buffer = []
-        self.voxel_buffer = []
+        self.model_buffer: list[GlModel] = []
+        self.image_buffer: list[GlImage] = []
+        self.voxel_buffer: list[GlVoxel] = []
         self.buffer_mutex.unlock()
 
         self.window.run_widget.play.clicked.connect(self.run_function)
         self.window.tree.itemClicked.connect(self.tree_item_click)
 
     def run_function(self):
-        # print(self.window.run_widget.run_configs.currentText())
         run_options = {
             "Convert voxels": [ConvertVoxelsRunnable, [self]],
-            "Texture voxels": [TextureVoxelsRunnable, []]
+            "Texture voxels": [TextureVoxelsRunnable, [self]]
         }
         run = run_options[self.window.run_widget.run_configs.currentText()][0]
         args = run_options[self.window.run_widget.run_configs.currentText()][1]

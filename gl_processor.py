@@ -76,7 +76,7 @@ def image_gl(image, maxes):
     for column, max_ in zip([0, 1, 2], maxes):
         vertices[:, column] -= max_ / 2
 
-    return vertices.flatten().astype(np.float32), indices.flatten().astype(np.uint32)
+    return vertices.flatten().astype(np.float32), indices.flatten().astype(np.uint32), (width, height), image
 
 
 def voxel_gl(voxels, maxes):
