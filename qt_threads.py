@@ -94,6 +94,9 @@ class TextureVoxelsRunnable(Runnable):
                 if not self.gl_widget.voxels:
                     return
 
+                # from timeit import Timer
+                # t = Timer(lambda: texture_voxels(self.gl_widget.voxels, self.gl_widget.images))
+                # print(t.timeit(number=1))
                 texture_voxels(self.gl_widget.voxels, self.gl_widget.images)
 
         super(TextureVoxelsRunnable, self).__init__(Thread, [gl_widget], "Texturing voxels", 0)

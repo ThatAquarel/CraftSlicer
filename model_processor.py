@@ -5,7 +5,6 @@ from trimesh import remesh
 
 from gl_elements import GlModel, GlGrid, GlVoxel, GlImage
 from gl_processor import position_matrix
-from tqdm import tqdm
 
 
 def convert_voxels(models: list[GlModel], grid: GlGrid):
@@ -31,7 +30,6 @@ def convert_voxels(models: list[GlModel], grid: GlGrid):
     return voxels
 
 
-# noinspection DuplicatedCode
 def texture_voxels(voxels: list[GlVoxel], images: list[GlImage]):
     voxel_color = np.zeros((*voxels[0].voxels.shape, 3), dtype=int)
 
@@ -40,32 +38,34 @@ def texture_voxels(voxels: list[GlVoxel], images: list[GlImage]):
         if pixels.shape[-1] == 4:
             pixels = np.delete(pixels, 3, axis=2)
 
-        for i in tqdm(np.ndindex(image.size), total=np.prod(image.size)):
-            for k in range(200):
-                maxes_skew = np.array([*np.array(image.maxes) / 2, 0]).astype(int)
-                pos_skew = np.array([*image.position, 0]).astype(int)
+        maxes_skew = (np.array([*image.maxes, 0]) / 2).astype(int)
+        pos_skew = np.array([*image.position, 0]).astype(int)
 
-                index = np.array([k, i[0], i[1], 0])
-                index -= maxes_skew
-                index += pos_skew
-                index = np.array(index @ position_matrix(image.theta, image.position, image.scale, reverse=True))
-                index = index + maxes_skew
-                index = np.array(index).astype(int)
-                index = np.delete(index, 3)
-                index = tuple(index)
+        pixel_indices = np.array([i for i in np.ndindex(1, *image.size)])
+        pixel_indices = np.flip(pixel_indices, axis=1)
+        pixel_indices = np.tile(pixel_indices, (200, 1))
 
-                bounds = True
-                _ = [bounds := bounds & (0 < x < y) for x, y in zip(index, voxels[0].voxels.shape) if bounds]
-                if not bounds:
-                    continue
+        voxel_indices = np.array([i for i in np.ndindex(200, *image.size, 1)])
+        voxel_indices -= maxes_skew
+        voxel_indices += pos_skew
+        voxel_indices = np.array(
+            voxel_indices @ position_matrix(image.theta, image.position, image.scale, reverse=True))
+        voxel_indices += maxes_skew
+        voxel_indices = np.array(voxel_indices).astype(int)
+        voxel_indices = np.delete(voxel_indices, 3, axis=1)
 
-                if voxels[0].voxels[index] == 1:
-                    try:
-                        voxel_color[index] = pixels[i[1], i[0]]
-                    except IndexError:
-                        print("index")
-                        pass
-                    break
+        a = 0 <= voxel_indices
+        a &= voxel_indices < voxels[0].voxels.shape
+        a = a[:, 0] & a[:, 1] & a[:, 2]
+        voxel_indices = voxel_indices[a]
+        pixel_indices = pixel_indices[a]
+
+        b = voxels[0].voxels[voxel_indices[:, 0], voxel_indices[:, 1], voxel_indices[:, 2]] == 1
+        voxel_indices = voxel_indices[b]
+        pixel_indices = pixel_indices[b]
+
+        voxel_color[voxel_indices[:, 0], voxel_indices[:, 1], voxel_indices[:, 2]] = \
+            pixels[pixel_indices[:, 0], pixel_indices[:, 1]]
 
     np.save(".\\tests\\voxel_color.npy", voxel_color)
     np.save(".\\tests\\voxels.npy", voxels[0].voxels)
