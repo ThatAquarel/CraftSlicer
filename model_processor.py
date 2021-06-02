@@ -34,6 +34,7 @@ def texture_voxels(voxels: list[GlVoxel], images: list[GlImage]):
     voxel_color = np.zeros((*voxels[0].voxels.shape, 3), dtype=int)
 
     depth = 200
+    layer_depth = 1
     for image in images:
         pixels = np.array(image.image)
         if pixels.shape[-1] == 4:
@@ -57,22 +58,22 @@ def texture_voxels(voxels: list[GlVoxel], images: list[GlImage]):
         a = 0 <= voxel_indices
         a &= voxel_indices < voxels[0].voxels.shape
         a = a[:, 0] & a[:, 1] & a[:, 2]
-
-        # n = np.prod(image.size)
-        # a = np.concatenate([a[i::n] for i in range(n)])
-        # # a = a.reshape((-1, depth))
-        # b = np.argwhere(a == True)
-        # b = np.unique(b, return_index=True)
-        # a &= False
-        # a[b[1]] = True
-        # a = np.concatenate([a[i::depth] for i in range(depth)])
-
         voxel_indices = voxel_indices[a]
         pixel_indices = pixel_indices[a]
 
         b = voxels[0].voxels[voxel_indices[:, 0], voxel_indices[:, 1], voxel_indices[:, 2]] == 1
         voxel_indices = voxel_indices[b]
         pixel_indices = pixel_indices[b]
+
+        pixel_indices_ = pixel_indices.copy()
+        c = np.array([], dtype=int)
+        for i in range(layer_depth):
+            pixel_indices_[c] = -1
+            _, d = np.unique(pixel_indices_, axis=0, return_index=True)
+            d = d[1:]
+            c = np.append(c, d)
+        pixel_indices = pixel_indices[c]
+        voxel_indices = voxel_indices[c]
 
         voxel_color[voxel_indices[:, 0], voxel_indices[:, 1], voxel_indices[:, 2]] = \
             pixels[pixel_indices[:, 0], pixel_indices[:, 1]]
