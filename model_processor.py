@@ -33,6 +33,7 @@ def convert_voxels(models: list[GlModel], grid: GlGrid):
 def texture_voxels(voxels: list[GlVoxel], images: list[GlImage]):
     voxel_color = np.zeros((*voxels[0].voxels.shape, 3), dtype=int)
 
+    depth = 200
     for image in images:
         pixels = np.array(image.image)
         if pixels.shape[-1] == 4:
@@ -43,20 +44,29 @@ def texture_voxels(voxels: list[GlVoxel], images: list[GlImage]):
 
         pixel_indices = np.array([i for i in np.ndindex(1, *image.size)])
         pixel_indices = np.flip(pixel_indices, axis=1)
-        pixel_indices = np.tile(pixel_indices, (200, 1))
+        pixel_indices = np.tile(pixel_indices, (depth, 1))
 
-        voxel_indices = np.array([i for i in np.ndindex(200, *image.size, 1)])
-        voxel_indices -= maxes_skew
-        voxel_indices += pos_skew
-        voxel_indices = np.array(
-            voxel_indices @ position_matrix(image.theta, image.position, image.scale, reverse=True))
+        voxel_indices = np.array([i for i in np.ndindex(depth, *image.size, 1)])
+        voxel_indices += -maxes_skew + pos_skew
+        voxel_indices = voxel_indices @ np.array(
+            position_matrix(image.theta, image.position, image.scale, reverse=True))
         voxel_indices += maxes_skew
-        voxel_indices = np.array(voxel_indices).astype(int)
+        voxel_indices = voxel_indices.astype(int)
         voxel_indices = np.delete(voxel_indices, 3, axis=1)
 
         a = 0 <= voxel_indices
         a &= voxel_indices < voxels[0].voxels.shape
         a = a[:, 0] & a[:, 1] & a[:, 2]
+
+        # n = np.prod(image.size)
+        # a = np.concatenate([a[i::n] for i in range(n)])
+        # # a = a.reshape((-1, depth))
+        # b = np.argwhere(a == True)
+        # b = np.unique(b, return_index=True)
+        # a &= False
+        # a[b[1]] = True
+        # a = np.concatenate([a[i::depth] for i in range(depth)])
+
         voxel_indices = voxel_indices[a]
         pixel_indices = pixel_indices[a]
 
