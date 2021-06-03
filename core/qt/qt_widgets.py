@@ -3,7 +3,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 
 # noinspection PyUnresolvedReferences
-import qrc_resources
+from core.res import qrc_resources
 
 
 class ExpandConstraint(QWidget):

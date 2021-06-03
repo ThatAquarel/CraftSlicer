@@ -141,7 +141,7 @@ class Render:
 if __name__ == '__main__':
     import stl
 
-    mesh = stl.mesh.Mesh.from_file(".\\models\\statue.stl")
+    mesh = stl.mesh.Mesh.from_file("../models/statue.stl")
 
     assert len(mesh.vectors) > 3, "Not readable stl"
     vertices_, faces_ = vector_to_vertex_index(mesh.vectors)

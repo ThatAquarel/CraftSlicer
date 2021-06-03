@@ -3,7 +3,7 @@ import os
 import stl
 from PIL import Image
 
-from gl_processor import *
+from core.gl.gl_processor import *
 
 
 class GlElement:

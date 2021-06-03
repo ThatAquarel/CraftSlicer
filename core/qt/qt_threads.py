@@ -2,8 +2,8 @@ from PyQt5.QtCore import Qt, QRunnable, QThread
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 
-from gl_elements import GlModel, GlImage, GlVoxel
-from model_processor import convert_voxels, texture_voxels
+from core.gl.gl_elements import GlModel, GlImage, GlVoxel
+from core.model_processor import convert_voxels, texture_voxels
 
 
 class Runnable(QRunnable):

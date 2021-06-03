@@ -5,7 +5,7 @@ import stl
 from OpenGL.GL import *
 from OpenGL.GL.shaders import compileProgram, compileShader
 
-from render import vector_to_vertex_index
+from tests.render import vector_to_vertex_index
 
 vertex_src = """
 # version 330

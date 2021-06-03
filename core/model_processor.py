@@ -3,8 +3,9 @@ import numpy as np
 from mpl_toolkits import mplot3d
 from trimesh import remesh
 
-from gl_elements import GlModel, GlGrid, GlVoxel, GlImage
-from gl_processor import position_matrix
+from core.gl.gl_elements import GlModel, GlGrid, GlVoxel, GlImage
+from core.gl.gl_processor import position_matrix
+from core.util import full_path
 
 
 def convert_voxels(models: list[GlModel], grid: GlGrid):
@@ -78,8 +79,8 @@ def texture_voxels(voxels: list[GlVoxel], images: list[GlImage]):
         voxel_color[voxel_indices[:, 0], voxel_indices[:, 1], voxel_indices[:, 2]] = \
             pixels[pixel_indices[:, 0], pixel_indices[:, 1]]
 
-    np.save(".\\tests\\voxel_color.npy", voxel_color)
-    np.save(".\\tests\\voxels.npy", voxels[0].voxels)
+    np.save(full_path(__file__, "../tests/voxel_color.npy"), voxel_color)
+    np.save(full_path(__file__, "../tests/voxels.npy"), voxels[0].voxels)
 
 
 # noinspection PyUnresolvedReferences

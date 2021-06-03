@@ -3,9 +3,17 @@ import pyrr
 from OpenGL.GL import *
 from OpenGL.GL.shaders import compileProgram, compileShader
 
-from gl_shaders import vertex_shader, fragment_shader
-from render import vector_to_vertex_index
-from models import cube
+from core.gl.gl_shaders import vertex_shader, fragment_shader
+from core.models import cube
+
+
+def vector_to_vertex_index(vectors, dims=3):
+    vertices = [vertex for triangle in vectors for vertex in triangle]
+
+    i = vectors.shape[0] * dims
+    faces = list(np.linspace(0, i, i, endpoint=False).reshape((vectors.shape[0], dims)).astype(int))
+
+    return vertices, faces
 
 
 # noinspection DuplicatedCode
@@ -116,7 +124,7 @@ def grid_gl(x_max, y_max, z_max):
     grid_x = np.array([[[i, 0, 0], [i, xy_max, 0]] for i in range(0, xy_max + 10, 10)])
     grid_y = np.array([[[0, i, 0], [xy_max, i, 0]] for i in range(0, xy_max + 10, 10)])
     grid_z = np.array([[[0, 0, 0], [0, 0, z_max]]])
-    grid_vertices, grid_indices = vector_to_vertex_index(np.concatenate((grid_x, grid_y, grid_z)), dimensions=2)
+    grid_vertices, grid_indices = vector_to_vertex_index(np.concatenate((grid_x, grid_y, grid_z)), dims=2)
     grid_indices = np.array(grid_indices, dtype=int)
     grid_vertices = np.array(grid_vertices, dtype=np.float32)[grid_indices]
     grid_vertices = np.reshape(grid_vertices, (-1, 3))

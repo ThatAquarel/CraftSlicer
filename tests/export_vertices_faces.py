@@ -1,5 +1,5 @@
 import stl
-from render import vector_to_vertex_index
+from tests.render import vector_to_vertex_index
 
 mesh = stl.mesh.Mesh.from_file("..\\models\\TestHouse.stl")
 

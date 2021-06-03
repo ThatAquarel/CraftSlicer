@@ -5,7 +5,7 @@ from OpenGL.GL import *
 from OpenGL.GLU import *
 from pygame.locals import *
 
-from render import vector_to_vertex_index
+from tests.render import vector_to_vertex_index
 
 stl_model = stl.mesh.Mesh.from_file("..\\models\\TestTorus.stl")
 

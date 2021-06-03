@@ -1,0 +1,35 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+    <file alias="arrow_left.svg">arrow/arrow_left.svg</file>
+    <file alias="arrow_right.svg">arrow/arrow_right.svg</file>
+
+    <file alias="lock_open.svg">lock/lock_open.svg</file>
+    <file alias="lock_closed.svg">lock/lock_closed.svg</file>
+
+    <file alias="about.svg">menu/about.svg</file>
+    <file alias="exit.svg">menu/exit.svg</file>
+    <file alias="new.svg">menu/new.svg</file>
+    <file alias="open.svg">menu/open.svg</file>
+    <file alias="save.svg">menu/save.svg</file>
+
+    <file alias="mirror.svg">model/mirror.svg</file>
+    <file alias="move.svg">model/move.svg</file>
+    <file alias="rotate.svg">model/rotate.svg</file>
+    <file alias="scale.svg">model/scale.svg</file>
+    <file alias="select.svg">model/select.svg</file>
+
+    <file alias="play.svg">run/play.svg</file>
+    <file alias="stop.svg">run/stop.svg</file>
+
+    <file alias="grid.svg">tree/grid.svg</file>
+    <file alias="image.svg">tree/image.svg</file>
+    <file alias="model.svg">tree/model.svg</file>
+    <file alias="voxel.svg">tree/voxel.svg</file>
+    <file alias="visibility_on.svg">tree/visibility_on.svg</file>
+    <file alias="visibility_off.svg">tree/visibility_off.svg</file>
+
+    <file alias="pan.svg">view/pan.svg</file>
+    <file alias="view.svg">view/rotate.svg</file>
+    <file alias="zoom.svg">view/zoom.svg</file>
+</qresource>
+</RCC>

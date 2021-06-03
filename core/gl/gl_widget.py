@@ -8,11 +8,12 @@ from PyQt5.QtGui import *
 from PyQt5.QtOpenGL import *
 from PyQt5.QtWidgets import *
 
+from core.gl.gl_elements import GlModel, GlImage, GlVoxel, GlGrid
+from core.gl.gl_processor import display_setup
+from core.qt.qt_threads import ImportRunnable, ConvertVoxelsRunnable, TextureVoxelsRunnable
 # noinspection PyUnresolvedReferences
-import qrc_resources
-from gl_elements import GlModel, GlImage, GlVoxel, GlGrid
-from gl_processor import display_setup
-from qt_threads import ImportRunnable, ConvertVoxelsRunnable, TextureVoxelsRunnable
+from core.res import qrc_resources
+from core.util import full_path
 
 
 class MainWindow(QMainWindow):
@@ -56,9 +57,9 @@ class GlWidget(QGLWidget):
         self.images: list[GlImage] = []
         self.voxels: list[GlVoxel] = []
 
-        self.models.append(GlModel(".\\models\\statue.stl", self))
+        self.models.append(GlModel(full_path(__file__, "../../models/statue.stl"), self))
         self.grid = GlGrid(self)
-        self.images.append(GlImage(".\\models\\statue.png", self))
+        self.images.append(GlImage(full_path(__file__, "../../models/statue.png"), self))
 
         self.setAcceptDrops(True)
         self.thread_pool = QThreadPool.globalInstance()
