@@ -2,6 +2,7 @@ import sys
 
 import numpy as np
 import pyrr.matrix44
+# noinspection PyPackageRequirements
 from OpenGL.GL import *
 from PyQt5.QtCore import Qt, QThreadPool, QMutex
 from PyQt5.QtGui import *
@@ -13,7 +14,6 @@ from core.gl.gl_processor import display_setup
 from core.qt.qt_threads import ImportRunnable, ConvertVoxelsRunnable, TextureVoxelsRunnable
 # noinspection PyUnresolvedReferences
 from core.res import qrc_resources
-from core.util import full_path
 
 
 class MainWindow(QMainWindow):
@@ -57,9 +57,11 @@ class GlWidget(QGLWidget):
         self.images: list[GlImage] = []
         self.voxels: list[GlVoxel] = []
 
-        self.models.append(GlModel(full_path(__file__, "../../models/statue.stl"), self))
+        # self.models.append(GlModel(full_path(__file__, "models/statue.stl"), self))
+        self.models.append(GlModel("C:\\Users\\xia_t\\Desktop\\Main Folder\\CraftSlicer\\models\\statue.stl", self))
         self.grid = GlGrid(self)
-        self.images.append(GlImage(full_path(__file__, "../../models/statue.png"), self))
+        # self.images.append(GlImage(full_path(__file__, "models/statue.png"), self))
+        self.images.append(GlImage("C:\\Users\\xia_t\\Desktop\\Main Folder\\CraftSlicer\\models\\statue.png", self))
 
         self.setAcceptDrops(True)
         self.thread_pool = QThreadPool.globalInstance()

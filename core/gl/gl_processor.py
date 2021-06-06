@@ -1,6 +1,8 @@
 import numpy as np
 import pyrr
+# noinspection PyPackageRequirements
 from OpenGL.GL import *
+# noinspection PyPackageRequirements
 from OpenGL.GL.shaders import compileProgram, compileShader
 
 from core.gl.gl_shaders import vertex_shader, fragment_shader

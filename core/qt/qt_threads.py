@@ -1,5 +1,4 @@
 from PyQt5.QtCore import Qt, QRunnable, QThread
-from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 
 from core.gl.gl_elements import GlModel, GlImage, GlVoxel
@@ -15,6 +14,7 @@ class Runnable(QRunnable):
         self.progress_dialog = QProgressDialog(progress_dialog_label, "Cancel", 0, progress_dialog_max)
         self.progress_dialog.setValue(0)
 
+        # noinspection PyTypeChecker
         self.progress_dialog.setWindowFlags(
             self.progress_dialog.windowFlags() &
             ~Qt.WindowCloseButtonHint &

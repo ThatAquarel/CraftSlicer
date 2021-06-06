@@ -1,5 +1,6 @@
 import os
 
+# noinspection PyPackageRequirements
 import stl
 from PIL import Image
 
