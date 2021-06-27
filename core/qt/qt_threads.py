@@ -2,7 +2,9 @@ from PyQt5.QtCore import Qt, QRunnable, QThread
 from PyQt5.QtWidgets import *
 
 from core.gl.gl_elements import GlModel, GlImage, GlVoxel
-from core.model_processor import convert_voxels, texture_voxels
+from core.model_processor import convert_voxels, texture_voxels, assign_blocks
+from core.qt.qt_dialog import AssignBlocksDialog
+from core.mc.palette_list import palette_list
 
 
 class Runnable(QRunnable):
@@ -17,8 +19,7 @@ class Runnable(QRunnable):
         # noinspection PyTypeChecker
         self.progress_dialog.setWindowFlags(
             self.progress_dialog.windowFlags() &
-            ~Qt.WindowCloseButtonHint &
-            Qt.WindowSystemMenuHint | Qt.WindowTitleHint)
+            Qt.CustomizeWindowHint | Qt.WindowTitleHint)
 
         self.progress_dialog.canceled.connect(self.cancel)
         self.progress_dialog.show()
@@ -76,6 +77,7 @@ class ConvertVoxelsRunnable(Runnable):
                 voxel = convert_voxels(self.gl_widget.models, self.gl_widget.grid)
 
                 self.gl_widget.buffer_mutex.lock()
+                self.gl_widget.voxels = []
                 self.gl_widget.voxel_buffer.append(GlVoxel(voxel, self.gl_widget))
                 self.gl_widget.buffer_mutex.unlock()
 
@@ -94,9 +96,65 @@ class TextureVoxelsRunnable(Runnable):
                 if not self.gl_widget.voxels:
                     return
 
+                # from timeit import Timer
+                # t = Timer(lambda: texture_voxels(self.gl_widget.voxels, self.gl_widget.images))
+                # print(t.timeit(number=1))
+                texture_voxels(self.gl_widget.voxels, self.gl_widget.images)
+
+        super(TextureVoxelsRunnable, self).__init__(Thread, [gl_widget], "Texturing voxels", 0)
+
+
+class AssignBlocks:
+    def __init__(self, gl_widget):
+        dialog = AssignBlocksDialog()
+        ret = dialog.exec_()
+
+        if ret == QMessageBox.Cancel or ret == QMessageBox.Close:
+            return
+
+        palette = palette_list[dialog.version_list.currentText()]
+        if not palette:
+            return
+
+        AssignBlocksRunnable(gl_widget, palette)
+
+
+class AssignBlocksRunnable(Runnable):
+    def __init__(self, gl_widget, palette):
+        class Thread(QThread):
+            def __init__(self, gl_widget_: gl_widget, palette_):
+                super(Thread, self).__init__()
+
+                self.gl_widget = gl_widget_
+                self.palette = palette_
+
+            def run(self):
+                if not self.gl_widget.voxels:
+                    return
+
+                assign_blocks(self.gl_widget.voxels[0].voxel_color,
+                              self.gl_widget.voxels[0].voxels,
+                              palette)
+                # texture_voxels(self.gl_widget.voxels, self.gl_widget.images)
+
+        super(AssignBlocksRunnable, self).__init__(Thread, [gl_widget, palette], "Assigning Blocks", 0)
+
+
+class DeployRunnable(Runnable):
+    def __init__(self, gl_widget):
+        class Thread(QThread):
+            def __init__(self, gl_widget_):
+                super(Thread, self).__init__()
+
+                self.gl_widget = gl_widget_
+
+            def run(self):
+                if not self.gl_widget.voxels:
+                    return
+
                 from timeit import Timer
                 t = Timer(lambda: texture_voxels(self.gl_widget.voxels, self.gl_widget.images))
                 print(t.timeit(number=1))
                 # texture_voxels(self.gl_widget.voxels, self.gl_widget.images)
 
-        super(TextureVoxelsRunnable, self).__init__(Thread, [gl_widget], "Texturing voxels", 0)
+        super(DeployRunnable, self).__init__(Thread, [gl_widget], "Deploying", 0)

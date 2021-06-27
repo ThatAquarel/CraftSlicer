@@ -11,7 +11,12 @@ from PyQt5.QtWidgets import *
 
 from core.gl.gl_elements import GlModel, GlImage, GlVoxel, GlGrid
 from core.gl.gl_processor import display_setup
-from core.qt.qt_threads import ImportRunnable, ConvertVoxelsRunnable, TextureVoxelsRunnable
+from core.qt.qt_threads import \
+    ImportRunnable, \
+    ConvertVoxelsRunnable, \
+    TextureVoxelsRunnable, \
+    AssignBlocks, \
+    DeployRunnable
 # noinspection PyUnresolvedReferences
 from core.res import qrc_resources
 
@@ -79,7 +84,9 @@ class GlWidget(QGLWidget):
     def run_function(self):
         run_options = {
             "Convert voxels": [ConvertVoxelsRunnable, [self]],
-            "Texture voxels": [TextureVoxelsRunnable, [self]]
+            "Texture voxels": [TextureVoxelsRunnable, [self]],
+            "Assign Blocks": [AssignBlocks, [self]],
+            "Deploy": [DeployRunnable, [self]]
         }
         run = run_options[self.window.run_widget.run_configs.currentText()][0]
         args = run_options[self.window.run_widget.run_configs.currentText()][1]

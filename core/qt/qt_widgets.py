@@ -117,7 +117,7 @@ class RunWidget(QWidget):
 
         self.run_configs = QComboBox()
         # self.run_configs.addItems(["Run all", "Convert voxels", "Texture voxels"])
-        self.run_configs.addItems(["Convert voxels", "Texture voxels"])
+        self.run_configs.addItems(["Convert voxels", "Texture voxels", "Assign Blocks", "Deploy"])
         self.parent_layout.addWidget(self.run_configs)
 
         self.play = QPushButton()

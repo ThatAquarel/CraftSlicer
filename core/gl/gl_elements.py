@@ -77,7 +77,7 @@ class GlVoxel(GlElement):
         super().__init__(widget)
 
         self.voxels = voxel
-        self.colors = None
+        self.voxel_color = None
 
         self.face_vertices, self.line_vertices, self.vertices, self.indices = voxel_gl(voxel, self.widget.grid_maxes)
 

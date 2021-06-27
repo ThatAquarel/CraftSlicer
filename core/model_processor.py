@@ -1,9 +1,22 @@
+import struct
+import time
+
 import numpy as np
+from nbt.nbt import NBTFile, \
+    TAG_Compound, \
+    TAG_Long_Array, \
+    TAG_List, \
+    TAG_Int, \
+    TAG_Long, \
+    TAG_String, \
+    TAG_BYTE, \
+    TAG_COMPOUND
+from tqdm import tqdm
 from trimesh import remesh
 
+from core.bin import StringBit, StringByte
 from core.gl.gl_elements import GlModel, GlGrid, GlVoxel, GlImage
 from core.gl.gl_processor import position_matrix
-from core.util import full_path
 
 
 def convert_voxels(models: list[GlModel], grid: GlGrid):
@@ -24,6 +37,7 @@ def convert_voxels(models: list[GlModel], grid: GlGrid):
         vertices, faces = remesh.subdivide_to_size(vertices=vertices, faces=faces, max_edge=1., max_iter=32)
 
         indices = np.unique(vertices.astype(int), axis=0).reshape((-1, 3))
+        indices = np.clip(indices, [0, 0, 0], maxes.astype(int))
         voxels[indices[:, 0], indices[:, 1], indices[:, 2]] = 1
 
     return voxels
@@ -77,5 +91,159 @@ def texture_voxels(voxels: list[GlVoxel], images: list[GlImage]):
         voxel_color[voxel_indices[:, 0], voxel_indices[:, 1], voxel_indices[:, 2]] = \
             pixels[pixel_indices[:, 0], pixel_indices[:, 1]]
 
-    np.save(full_path(__file__, "../tests/voxel_color.npy"), voxel_color)
-    np.save(full_path(__file__, "../tests/voxels.npy"), voxels[0].voxels)
+    voxels[0].voxel_color = voxel_color
+    # np.save(full_path(__file__, "../tests/voxel_color.npy"), voxel_color)
+    # np.save(full_path(__file__, "../tests/voxels.npy"), voxels[0].voxels)
+
+
+def assign_blocks(voxels: np.ndarray, voxel_color: np.ndarray, palette: dict):
+    # voxels = np.transpose(voxels, axes=(0, 2, 1))
+    # voxel_color = np.transpose(voxel_color, axes=(0, 2, 1, 3))
+
+    voxels = np.repeat(np.expand_dims(voxels, axis=3), 3, axis=3)
+
+    voxel_color = np.where(voxel_color == [0, 0, 0], [126, 126, 126], voxel_color)
+    voxel_color *= voxels
+    # voxel_color = voxel_color.reshape((-1, 3))
+    voxel_color = np.reshape(voxel_color, (-1, 3), "F")
+    voxel_color_shape = voxel_color.shape
+
+    colors = np.array(list(palette.values()))
+    colors_shape = colors.shape
+    colors = np.tile(colors, (voxel_color.shape[0], 1))
+    voxel_color = np.repeat(voxel_color, colors_shape[0], axis=0)
+
+    colors_diff = np.absolute(voxel_color - colors)
+    colors_diff = colors_diff.reshape((voxel_color_shape[0], colors_shape[0], 3))
+    colors_diff = np.sum(colors_diff, axis=2)
+
+    flattened_blocks = np.argmin(colors_diff, axis=1)
+    block_types = np.array(list(palette.keys()), dtype=str)
+    flattened_blocks = block_types[flattened_blocks]
+
+    return flattened_blocks
+
+
+def deploy_blocks(voxels: np.ndarray, flattened_blocks: np.ndarray, filename: str):
+    block_state_palette, block_states = np.unique(flattened_blocks, return_inverse=True)
+
+    bit_pack_length = len(np.binary_repr(np.int64(len(block_state_palette) - 1)))
+
+    block_states_long_array = []
+    long_max = StringBit(16 * StringByte, integer=(1 << 64) - 1)
+    long_buffer = StringBit(16 * StringByte, integer=0)
+
+    bit_count = 0
+
+    for block_state in tqdm(block_states):
+        data = StringBit(16 * StringByte, integer=block_state)
+        data = data << bit_count
+        long_buffer = long_buffer | data
+
+        bit_count += bit_pack_length
+        if bit_count > 64:
+            block_states_long_array.append(
+                struct.unpack(">q", struct.pack(">Q",
+                                                int(str(long_buffer & long_max), 2)
+                                                ))[0])
+
+            long_buffer = long_buffer >> 64
+            bit_count -= 64
+
+    block_states_long_array.append(int(str(long_buffer & long_max), 2) - (1 << 63))
+
+    nbt_structure = {
+        "Metadata": {"class": TAG_Compound, "tags": {
+            "EnclosingSize": {"class": TAG_Compound, "tags": {
+                "x": {"class": TAG_Int, "value": voxels.shape[0]},
+                "y": {"class": TAG_Int, "value": voxels.shape[2]},
+                "z": {"class": TAG_Int, "value": voxels.shape[1]}
+            }},
+            "Author": {"class": TAG_String, "value": "Aqua_rel"},
+            "Description": {"class": TAG_String, "value": ""},
+            "Name": {"class": TAG_String, "value": "CraftSlicer"},
+            "RegionCount": {"class": TAG_Int, "value": 1},
+            "TimeCreated": {"class": TAG_Long, "value": int(time.time())},
+            "TimeModified": {"class": TAG_Long, "value": int(time.time())},
+            "TotalBlocks": {"class": TAG_Int, "value": int(np.unique(voxels, return_counts=True)[1][1])},
+            "TotalVolume": {"class": TAG_Int, "value": int(np.prod(voxels.shape))}
+        }},
+        "Regions": {"class": TAG_Compound, "tags": {
+            "Region": {"class": TAG_Compound, "tags": {
+                "Position": {"class": TAG_Compound, "tags": {
+                    "x": {"class": TAG_Int, "value": 0},
+                    "y": {"class": TAG_Int, "value": 0},
+                    "z": {"class": TAG_Int, "value": 0}
+                }},
+                "Size": {"class": TAG_Compound, "tags": {
+                    "x": {"class": TAG_Int, "value": voxels.shape[0]},
+                    "y": {"class": TAG_Int, "value": voxels.shape[2]},
+                    "z": {"class": TAG_Int, "value": voxels.shape[1]}
+                }},
+                "BlockStatePalette": {"class": TAG_List, "tagID": TAG_COMPOUND, "tags": {
+                    "".join(" " for _ in range(i)):
+                        {"class": TAG_Compound, "tags": {
+                            "Name": {"class": TAG_String, "value": block_state}
+                        }}
+                    for i, block_state in enumerate(block_state_palette)
+                }},
+                "Entities": {"class": TAG_List, "tagID": TAG_BYTE, "tags": {}},
+                "PendingBlockTicks": {"class": TAG_List, "tagID": TAG_BYTE, "tags": {}},
+                "PendingFluidTicks": {"class": TAG_List, "tagID": TAG_BYTE, "tags": {}},
+                "TileEntities": {"class": TAG_List, "tagID": TAG_BYTE, "tags": {}},
+                "BlockStates": {"class": TAG_Long_Array, "value": block_states_long_array}
+            }}
+        }},
+        "MinecraftDataVersion": {"class": TAG_Int, "value": 2586},
+        "Version": {"class": TAG_Int, "value": 5}
+    }
+
+    nbt_file = NBTFile()
+    nbt_file.name = filename
+
+    def handle_recursive(parent, items: dict):
+        for key, value in items.items():
+            tag = value["class"]()
+
+            if " " in key:
+                tag.name = ""
+            else:
+                tag.name = key
+
+            if "tagID" in value:
+                tag.tagID = value["tagID"]
+
+            if "tags" in value:
+                handle_recursive(tag, value["tags"])
+            elif "value" in value:
+                tag.value = value["value"]
+            parent.tags.append(tag)
+
+    handle_recursive(nbt_file, nbt_structure)
+
+    nbt_file.write_file("%s.litematic" % filename)
+
+
+if __name__ == '__main__':
+    voxels_ = np.load("../tests/voxels.npy")
+    colors_ = np.load("../tests/voxel_color.npy")
+    from core.mc.one_dot_sixteen.one_dot_sixteen import palette as palette_
+
+    # voxels_ = np.zeros((2, 2, 3), dtype=int)
+    # voxels_[0, 0, 0] = 1
+    # voxels_[0, 0, 2] = 1
+    # voxels_[1, 1, 1] = 1
+    #
+    # colors_ = np.zeros((2, 2, 3, 3))
+    # colors_[0, 0, 0] = [126, 126, 126]
+    # colors_[0, 0, 2] = [34, 34, 34]
+    # colors_[1, 1, 1] = [0, 0, 64]
+
+    flattened_blocks_ = assign_blocks(voxels_, colors_, palette_)
+    # np.save("../tests/flattened_blocks_.npy", flattened_blocks_)
+
+    # flattened_blocks_ = np.load("../tests/flattened_blocks_.npy")
+    deploy_blocks(voxels_, flattened_blocks_, "test")
+
+    from tests import java_socket
+    java_socket.send()
