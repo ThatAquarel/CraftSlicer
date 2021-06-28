@@ -1,4 +1,4 @@
-import struct
+import math
 import time
 
 import numpy as np
@@ -11,10 +11,8 @@ from nbt.nbt import NBTFile, \
     TAG_String, \
     TAG_BYTE, \
     TAG_COMPOUND
-from tqdm import tqdm
 from trimesh import remesh
 
-from core.bin import StringBit, StringByte
 from core.gl.gl_elements import GlModel, GlGrid, GlVoxel, GlImage
 from core.gl.gl_processor import position_matrix
 
@@ -97,14 +95,10 @@ def texture_voxels(voxels: list[GlVoxel], images: list[GlImage]):
 
 
 def assign_blocks(voxels: np.ndarray, voxel_color: np.ndarray, palette: dict):
-    # voxels = np.transpose(voxels, axes=(0, 2, 1))
-    # voxel_color = np.transpose(voxel_color, axes=(0, 2, 1, 3))
-
     voxels = np.repeat(np.expand_dims(voxels, axis=3), 3, axis=3)
 
     voxel_color = np.where(voxel_color == [0, 0, 0], [126, 126, 126], voxel_color)
     voxel_color *= voxels
-    # voxel_color = voxel_color.reshape((-1, 3))
     voxel_color = np.reshape(voxel_color, (-1, 3), "F")
     voxel_color_shape = voxel_color.shape
 
@@ -128,29 +122,17 @@ def deploy_blocks(voxels: np.ndarray, flattened_blocks: np.ndarray, filename: st
     block_state_palette, block_states = np.unique(flattened_blocks, return_inverse=True)
 
     bit_pack_length = len(np.binary_repr(np.int64(len(block_state_palette) - 1)))
+    bit_array_length = math.ceil(block_states.shape[0] * bit_pack_length / 64) * 64
 
-    block_states_long_array = []
-    long_max = StringBit(16 * StringByte, integer=(1 << 64) - 1)
-    long_buffer = StringBit(16 * StringByte, integer=0)
+    bit_array = np.zeros(bit_array_length, dtype=bool)
+    bit_block_states = block_states[:, None] & (1 << np.arange(bit_pack_length)) > 0
+    bit_block_states = bit_block_states.flatten()
+    bit_indices = np.arange(0, block_states.shape[0] * bit_pack_length)
 
-    bit_count = 0
+    bit_array[bit_indices] = bit_block_states
 
-    for block_state in tqdm(block_states):
-        data = StringBit(16 * StringByte, integer=block_state)
-        data = data << bit_count
-        long_buffer = long_buffer | data
-
-        bit_count += bit_pack_length
-        if bit_count > 64:
-            block_states_long_array.append(
-                struct.unpack(">q", struct.pack(">Q",
-                                                int(str(long_buffer & long_max), 2)
-                                                ))[0])
-
-            long_buffer = long_buffer >> 64
-            bit_count -= 64
-
-    block_states_long_array.append(int(str(long_buffer & long_max), 2) - (1 << 63))
+    bit_array = bit_array.astype(int)
+    block_states_long_array = np.packbits(bit_array.reshape((-1, 8, 8))[:, :, ::-1]).view(np.int64)
 
     nbt_structure = {
         "Metadata": {"class": TAG_Compound, "tags": {
@@ -192,6 +174,7 @@ def deploy_blocks(voxels: np.ndarray, flattened_blocks: np.ndarray, filename: st
                 "PendingFluidTicks": {"class": TAG_List, "tagID": TAG_BYTE, "tags": {}},
                 "TileEntities": {"class": TAG_List, "tagID": TAG_BYTE, "tags": {}},
                 "BlockStates": {"class": TAG_Long_Array, "value": block_states_long_array}
+                # "BlockStates": {"class": TAG_Long_Array, "value": None}
             }}
         }},
         "MinecraftDataVersion": {"class": TAG_Int, "value": 2586},
@@ -226,24 +209,15 @@ def deploy_blocks(voxels: np.ndarray, flattened_blocks: np.ndarray, filename: st
 
 if __name__ == '__main__':
     voxels_ = np.load("../tests/voxels.npy")
-    colors_ = np.load("../tests/voxel_color.npy")
-    from core.mc.one_dot_sixteen.one_dot_sixteen import palette as palette_
+    # colors_ = np.load("../tests/voxel_color.npy")
+    # from core.mc.one_dot_sixteen.one_dot_sixteen import palette as palette_
 
-    # voxels_ = np.zeros((2, 2, 3), dtype=int)
-    # voxels_[0, 0, 0] = 1
-    # voxels_[0, 0, 2] = 1
-    # voxels_[1, 1, 1] = 1
-    #
-    # colors_ = np.zeros((2, 2, 3, 3))
-    # colors_[0, 0, 0] = [126, 126, 126]
-    # colors_[0, 0, 2] = [34, 34, 34]
-    # colors_[1, 1, 1] = [0, 0, 64]
-
-    flattened_blocks_ = assign_blocks(voxels_, colors_, palette_)
+    # flattened_blocks_ = assign_blocks(voxels_, colors_, palette_)
     # np.save("../tests/flattened_blocks_.npy", flattened_blocks_)
 
-    # flattened_blocks_ = np.load("../tests/flattened_blocks_.npy")
+    flattened_blocks_ = np.load("../tests/flattened_blocks_.npy")
     deploy_blocks(voxels_, flattened_blocks_, "test")
 
     from tests import java_socket
+
     java_socket.send()
