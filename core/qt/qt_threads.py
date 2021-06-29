@@ -2,9 +2,19 @@ from PyQt5.QtCore import Qt, QRunnable, QThread
 from PyQt5.QtWidgets import *
 
 from core.gl.gl_elements import GlModel, GlImage, GlVoxel
-from core.model_processor import convert_voxels, texture_voxels, assign_blocks
-from core.qt.qt_dialog import AssignBlocksDialog
 from core.mc.palette_list import palette_list
+from core.model_processor import convert_voxels, texture_voxels, assign_blocks, deploy_blocks
+from core.qt.qt_dialog import AssignBlocksDialog, DeployBlocksDialog
+
+
+def get_run_options(gl_widget):
+    return {
+        "Run All": [AllRunnable, [gl_widget]],
+        "Convert Voxels": [ConvertVoxelsRunnable, [gl_widget]],
+        "Texture Voxels": [TextureVoxelsRunnable, [gl_widget]],
+        "Assign Blocks": [AssignBlocksRunnable, [gl_widget]],
+        "Deploy": [DeployBlocksRunnable, [gl_widget]]
+    }
 
 
 class Runnable(QRunnable):
@@ -65,6 +75,59 @@ class ImportRunnable(Runnable):
                                              "".join("{0}\n".format(file) for file in files), 0)
 
 
+class AllRunnable(Runnable):
+    def __init__(self, gl_widget):
+        dialog = AssignBlocksDialog()
+        ret = dialog.exec_()
+        if ret == QMessageBox.Cancel or ret == QMessageBox.Close:
+            return
+
+        palette = palette_list[dialog.version_list.currentText()]
+        if not palette:
+            return
+
+        dialog = DeployBlocksDialog()
+        ret = dialog.exec_()
+        if ret == QMessageBox.Cancel or ret == QMessageBox.Close:
+            return
+
+        user_info = {
+            "Author": dialog.author_text.text(),
+            "Name": dialog.project_text.text()
+        }
+
+        class Thread(QThread):
+            def __init__(self, gl_widget_, palette_, user_info_):
+                super(Thread, self).__init__()
+
+                self.running = True
+                self.gl_widget = gl_widget_
+                self.palette = palette_
+                self.user_info = user_info_
+
+            def run(self):
+                voxels = convert_voxels(self.gl_widget.models, self.gl_widget.grid)
+                gl_voxel = GlVoxel(voxels, self.gl_widget)
+
+                voxel_color = texture_voxels(gl_voxel, self.gl_widget.images)
+                gl_voxel = GlVoxel(voxels, self.gl_widget, voxel_color=voxel_color)
+
+                gl_voxel.flattened_blocks = assign_blocks(voxels=voxels,
+                                                          voxel_color=voxel_color,
+                                                          palette=self.palette)
+
+                deploy_blocks(voxels=voxels,
+                              flattened_blocks=gl_voxel.flattened_blocks,
+                              user_info=self.user_info)
+
+                self.gl_widget.buffer_mutex.lock()
+                self.gl_widget.voxels = []
+                self.gl_widget.voxel_buffer.append(gl_voxel)
+                self.gl_widget.buffer_mutex.unlock()
+
+        super(AllRunnable, self).__init__(Thread, [gl_widget, palette, user_info], "Run All", 0)
+
+
 class ConvertVoxelsRunnable(Runnable):
     def __init__(self, gl_widget):
         class Thread(QThread):
@@ -96,15 +159,18 @@ class TextureVoxelsRunnable(Runnable):
                 if not self.gl_widget.voxels:
                     return
 
-                # from timeit import Timer
-                # t = Timer(lambda: texture_voxels(self.gl_widget.voxels, self.gl_widget.images))
-                # print(t.timeit(number=1))
-                texture_voxels(self.gl_widget.voxels, self.gl_widget.images)
+                voxel_color = texture_voxels(self.gl_widget.voxels[0], self.gl_widget.images)
+                voxels = self.gl_widget.voxels[0].voxels
+
+                self.gl_widget.buffer_mutex.lock()
+                self.gl_widget.voxels = []
+                self.gl_widget.voxel_buffer.append(GlVoxel(voxels, self.gl_widget, voxel_color=voxel_color))
+                self.gl_widget.buffer_mutex.unlock()
 
         super(TextureVoxelsRunnable, self).__init__(Thread, [gl_widget], "Texturing voxels", 0)
 
 
-class AssignBlocks:
+class AssignBlocksRunnable(Runnable):
     def __init__(self, gl_widget):
         dialog = AssignBlocksDialog()
         ret = dialog.exec_()
@@ -116,11 +182,6 @@ class AssignBlocks:
         if not palette:
             return
 
-        AssignBlocksRunnable(gl_widget, palette)
-
-
-class AssignBlocksRunnable(Runnable):
-    def __init__(self, gl_widget, palette):
         class Thread(QThread):
             def __init__(self, gl_widget_: gl_widget, palette_):
                 super(Thread, self).__init__()
@@ -131,30 +192,45 @@ class AssignBlocksRunnable(Runnable):
             def run(self):
                 if not self.gl_widget.voxels:
                     return
+                if self.gl_widget.voxels[0].voxel_color is None:
+                    return
 
-                assign_blocks(self.gl_widget.voxels[0].voxel_color,
-                              self.gl_widget.voxels[0].voxels,
-                              palette)
-                # texture_voxels(self.gl_widget.voxels, self.gl_widget.images)
+                self.gl_widget.voxels[0].flattened_blocks = assign_blocks(voxels=self.gl_widget.voxels[0].voxels,
+                                                                          voxel_color=self.gl_widget.voxels[
+                                                                              0].voxel_color,
+                                                                          palette=self.palette)
 
         super(AssignBlocksRunnable, self).__init__(Thread, [gl_widget, palette], "Assigning Blocks", 0)
 
 
-class DeployRunnable(Runnable):
+class DeployBlocksRunnable(Runnable):
     def __init__(self, gl_widget):
+        dialog = DeployBlocksDialog()
+        ret = dialog.exec_()
+
+        if ret == QMessageBox.Cancel or ret == QMessageBox.Close:
+            return
+
+        user_info = {
+            "Author": dialog.author_text.text(),
+            "Name": dialog.project_text.text()
+        }
+
         class Thread(QThread):
-            def __init__(self, gl_widget_):
+            def __init__(self, gl_widget_, user_info_):
                 super(Thread, self).__init__()
 
                 self.gl_widget = gl_widget_
+                self.user_info = user_info_
 
             def run(self):
                 if not self.gl_widget.voxels:
                     return
+                if self.gl_widget.voxels[0].flattened_blocks is None:
+                    return
 
-                from timeit import Timer
-                t = Timer(lambda: texture_voxels(self.gl_widget.voxels, self.gl_widget.images))
-                print(t.timeit(number=1))
-                # texture_voxels(self.gl_widget.voxels, self.gl_widget.images)
+                deploy_blocks(voxels=self.gl_widget.voxels[0].voxels,
+                              flattened_blocks=self.gl_widget.voxels[0].flattened_blocks,
+                              user_info=self.user_info)
 
-        super(DeployRunnable, self).__init__(Thread, [gl_widget], "Deploying", 0)
+        super(DeployBlocksRunnable, self).__init__(Thread, [gl_widget, user_info], "Deploying", 0)

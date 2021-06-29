@@ -6,7 +6,7 @@ Tested using Windows 10, Python 3.8 and Minecraft 1.12.2 with forge and worldedi
 - Trimesh, mesh manipulation library
 - Numpy, array manipulation library
 - Pillow, python imaging library
-- Nbt, nbt modifiying library
+- Nbt, nbt modifying library
 - Os, system
 - Sys, system
 - Shutil, system

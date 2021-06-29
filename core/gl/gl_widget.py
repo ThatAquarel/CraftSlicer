@@ -8,17 +8,20 @@ from PyQt5.QtCore import Qt, QThreadPool, QMutex
 from PyQt5.QtGui import *
 from PyQt5.QtOpenGL import *
 from PyQt5.QtWidgets import *
+# noinspection PyUnresolvedReferences
+from core.res import qrc_resources
 
 from core.gl.gl_elements import GlModel, GlImage, GlVoxel, GlGrid
 from core.gl.gl_processor import display_setup
-from core.qt.qt_threads import \
-    ImportRunnable, \
-    ConvertVoxelsRunnable, \
-    TextureVoxelsRunnable, \
-    AssignBlocks, \
-    DeployRunnable
-# noinspection PyUnresolvedReferences
-from core.res import qrc_resources
+from core.qt.qt_threads import get_run_options, ImportRunnable
+
+
+# from core.qt.qt_threads import \
+#     ImportRunnable, \
+#     ConvertVoxelsRunnable, \
+#     TextureVoxelsRunnable, \
+#     AssignBlocksRunnable, \
+#     DeployBlocksRunnable
 
 
 class MainWindow(QMainWindow):
@@ -82,12 +85,8 @@ class GlWidget(QGLWidget):
         self.window.tree.itemClicked.connect(self.tree_item_click)
 
     def run_function(self):
-        run_options = {
-            "Convert voxels": [ConvertVoxelsRunnable, [self]],
-            "Texture voxels": [TextureVoxelsRunnable, [self]],
-            "Assign Blocks": [AssignBlocks, [self]],
-            "Deploy": [DeployRunnable, [self]]
-        }
+        run_options = get_run_options(self)
+
         run = run_options[self.window.run_widget.run_configs.currentText()][0]
         args = run_options[self.window.run_widget.run_configs.currentText()][1]
         self.thread_pool.start(run(*args))

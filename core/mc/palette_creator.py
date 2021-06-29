@@ -1,6 +1,7 @@
 from pathlib import Path
-from PIL import Image
+
 import numpy as np
+from PIL import Image
 
 directory = "C:\\Users\\xia_t\\Desktop\\Main Folder\\minecraft\\assets\\minecraft\\"
 blocks = [i.replace("\n", "") for i in open("one_dot_sixteen/one_dot_sixteen.txt", "r").readlines()]

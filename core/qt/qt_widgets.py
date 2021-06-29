@@ -4,6 +4,7 @@ from PyQt5.QtWidgets import *
 
 # noinspection PyUnresolvedReferences
 from core.res import qrc_resources
+from core.qt.qt_threads import get_run_options
 
 
 class ExpandConstraint(QWidget):
@@ -117,7 +118,8 @@ class RunWidget(QWidget):
 
         self.run_configs = QComboBox()
         # self.run_configs.addItems(["Run all", "Convert voxels", "Texture voxels"])
-        self.run_configs.addItems(["Convert voxels", "Texture voxels", "Assign Blocks", "Deploy"])
+        # self.run_configs.addItems(["Convert voxels", "Texture voxels", "Assign Blocks", "Deploy"])
+        self.run_configs.addItems(list(get_run_options(None).keys()))
         self.parent_layout.addWidget(self.run_configs)
 
         self.play = QPushButton()

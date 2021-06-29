@@ -89,7 +89,7 @@ def image_gl(image, maxes):
     return vertices.flatten().astype(np.float32), indices.flatten().astype(np.uint32), (width, height), image
 
 
-def voxel_gl(voxels, maxes):
+def voxel_gl(voxels, maxes, voxel_color: np.ndarray = None):
     cube_vertices, cube_indices = cube
     cube_vertices, cube_indices = np.array(cube_vertices).astype(float), np.array(cube_indices).astype(int)
 
@@ -102,8 +102,19 @@ def voxel_gl(voxels, maxes):
     vertices, indices = vector_to_vertex_index(vectors)
     vertices, indices = np.array(vertices).reshape((-1, 3)), np.array(indices)
 
-    face_colors = np.repeat([[0.7, 0.7, 0.7, 1.0]], vertices.shape[0], axis=0)
-    line_colors = np.repeat([[1.0, 1.0, 1.0, 1.0]], vertices.shape[0], axis=0)
+    if voxel_color is not None:
+        face_colors = voxel_color.copy()
+        voxel_indices = np.argwhere(voxels.flatten() == 1)
+        face_colors = face_colors.reshape((-1, 3))
+        face_colors = np.pad(face_colors, ((0, 0), (0, 1)), constant_values=255)
+        face_colors = face_colors.astype(np.float32)
+        face_colors = face_colors[voxel_indices.flatten()]
+        face_colors /= 255
+        face_colors = np.repeat(face_colors, 36, axis=0)
+        line_colors = face_colors
+    else:
+        face_colors = np.repeat([[0.7, 0.7, 0.7, 1.0]], vertices.shape[0], axis=0)
+        line_colors = np.repeat([[1.0, 1.0, 1.0, 1.0]], vertices.shape[0], axis=0)
 
     face_vertices = np.concatenate((vertices, face_colors), axis=1)
     line_vertices = np.concatenate((vertices, line_colors), axis=1)

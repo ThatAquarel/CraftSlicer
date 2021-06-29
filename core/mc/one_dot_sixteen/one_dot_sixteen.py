@@ -1,3 +1,4 @@
+# noinspection SpellCheckingInspection
 palette = \
     {
         "minecraft:air": [0, 0, 0],

@@ -73,13 +73,16 @@ class GlModel(GlElement):
 
 
 class GlVoxel(GlElement):
-    def __init__(self, voxel, widget):
+    def __init__(self, voxel, widget, voxel_color=None):
         super().__init__(widget)
 
         self.voxels = voxel
-        self.voxel_color = None
+        self.voxel_color = voxel_color
+        self.flattened_blocks = None
 
-        self.face_vertices, self.line_vertices, self.vertices, self.indices = voxel_gl(voxel, self.widget.grid_maxes)
+        self.face_vertices, self.line_vertices, self.vertices, self.indices = voxel_gl(voxel,
+                                                                                       self.widget.grid_maxes,
+                                                                                       voxel_color=voxel_color)
 
 
 class GlImage(GlElementSimple):

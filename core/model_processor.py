@@ -1,5 +1,7 @@
-import math
+import os
 import time
+
+import tempfile
 
 import numpy as np
 from nbt.nbt import NBTFile, \
@@ -15,6 +17,7 @@ from trimesh import remesh
 
 from core.gl.gl_elements import GlModel, GlGrid, GlVoxel, GlImage
 from core.gl.gl_processor import position_matrix
+from core.net.socket import send
 
 
 def convert_voxels(models: list[GlModel], grid: GlGrid):
@@ -41,8 +44,10 @@ def convert_voxels(models: list[GlModel], grid: GlGrid):
     return voxels
 
 
-def texture_voxels(voxels: list[GlVoxel], images: list[GlImage]):
-    voxel_color = np.zeros((*voxels[0].voxels.shape, 3), dtype=int)
+def texture_voxels(voxels: GlVoxel, images: list[GlImage]):
+    voxels = voxels.voxels
+
+    voxel_color = np.zeros((*voxels.shape, 3), dtype=int)
 
     depth = 200
     layer_depth = 1
@@ -67,12 +72,12 @@ def texture_voxels(voxels: list[GlVoxel], images: list[GlImage]):
         voxel_indices = np.delete(voxel_indices, 3, axis=1)
 
         a = 0 <= voxel_indices
-        a &= voxel_indices < voxels[0].voxels.shape
+        a &= voxel_indices < voxels.shape
         a = a[:, 0] & a[:, 1] & a[:, 2]
         voxel_indices = voxel_indices[a]
         pixel_indices = pixel_indices[a]
 
-        b = voxels[0].voxels[voxel_indices[:, 0], voxel_indices[:, 1], voxel_indices[:, 2]] == 1
+        b = voxels[voxel_indices[:, 0], voxel_indices[:, 1], voxel_indices[:, 2]] == 1
         voxel_indices = voxel_indices[b]
         pixel_indices = pixel_indices[b]
 
@@ -89,9 +94,7 @@ def texture_voxels(voxels: list[GlVoxel], images: list[GlImage]):
         voxel_color[voxel_indices[:, 0], voxel_indices[:, 1], voxel_indices[:, 2]] = \
             pixels[pixel_indices[:, 0], pixel_indices[:, 1]]
 
-    voxels[0].voxel_color = voxel_color
-    # np.save(full_path(__file__, "../tests/voxel_color.npy"), voxel_color)
-    # np.save(full_path(__file__, "../tests/voxels.npy"), voxels[0].voxels)
+    return voxel_color
 
 
 def assign_blocks(voxels: np.ndarray, voxel_color: np.ndarray, palette: dict):
@@ -118,11 +121,11 @@ def assign_blocks(voxels: np.ndarray, voxel_color: np.ndarray, palette: dict):
     return flattened_blocks
 
 
-def deploy_blocks(voxels: np.ndarray, flattened_blocks: np.ndarray, filename: str):
+def deploy_blocks(voxels: np.ndarray, flattened_blocks: np.ndarray, user_info: dict):
     block_state_palette, block_states = np.unique(flattened_blocks, return_inverse=True)
 
     bit_pack_length = len(np.binary_repr(np.int64(len(block_state_palette) - 1)))
-    bit_array_length = math.ceil(block_states.shape[0] * bit_pack_length / 64) * 64
+    bit_array_length = int(np.ceil(block_states.shape[0] * bit_pack_length / 64)) * 64
 
     bit_array = np.zeros(bit_array_length, dtype=bool)
     bit_block_states = block_states[:, None] & (1 << np.arange(bit_pack_length)) > 0
@@ -141,9 +144,9 @@ def deploy_blocks(voxels: np.ndarray, flattened_blocks: np.ndarray, filename: st
                 "y": {"class": TAG_Int, "value": voxels.shape[2]},
                 "z": {"class": TAG_Int, "value": voxels.shape[1]}
             }},
-            "Author": {"class": TAG_String, "value": "Aqua_rel"},
-            "Description": {"class": TAG_String, "value": ""},
-            "Name": {"class": TAG_String, "value": "CraftSlicer"},
+            "Author": {"class": TAG_String, "value": user_info["Author"]},
+            "Description": {"class": TAG_String, "value": "Generated with CraftSlicer"},
+            "Name": {"class": TAG_String, "value": user_info["Name"]},
             "RegionCount": {"class": TAG_Int, "value": 1},
             "TimeCreated": {"class": TAG_Long, "value": int(time.time())},
             "TimeModified": {"class": TAG_Long, "value": int(time.time())},
@@ -174,7 +177,6 @@ def deploy_blocks(voxels: np.ndarray, flattened_blocks: np.ndarray, filename: st
                 "PendingFluidTicks": {"class": TAG_List, "tagID": TAG_BYTE, "tags": {}},
                 "TileEntities": {"class": TAG_List, "tagID": TAG_BYTE, "tags": {}},
                 "BlockStates": {"class": TAG_Long_Array, "value": block_states_long_array}
-                # "BlockStates": {"class": TAG_Long_Array, "value": None}
             }}
         }},
         "MinecraftDataVersion": {"class": TAG_Int, "value": 2586},
@@ -182,7 +184,7 @@ def deploy_blocks(voxels: np.ndarray, flattened_blocks: np.ndarray, filename: st
     }
 
     nbt_file = NBTFile()
-    nbt_file.name = filename
+    nbt_file.name = user_info["Name"]
 
     def handle_recursive(parent, items: dict):
         for key, value in items.items():
@@ -204,7 +206,8 @@ def deploy_blocks(voxels: np.ndarray, flattened_blocks: np.ndarray, filename: st
 
     handle_recursive(nbt_file, nbt_structure)
 
-    nbt_file.write_file("%s.litematic" % filename)
+    nbt_file.write_file(path := os.path.join(tempfile.gettempdir(), "%s.litematic" % user_info["Name"]))
+    send(path)
 
 
 if __name__ == '__main__':
@@ -216,8 +219,12 @@ if __name__ == '__main__':
     # np.save("../tests/flattened_blocks_.npy", flattened_blocks_)
 
     flattened_blocks_ = np.load("../tests/flattened_blocks_.npy")
-    deploy_blocks(voxels_, flattened_blocks_, "test")
+    deploy_blocks(voxels_, flattened_blocks_, {
+        "Author": "Aquarel",
+        "Name": "test"
+    })
 
+    # noinspection PyPackageRequirements
     from tests import java_socket
 
     java_socket.send()
