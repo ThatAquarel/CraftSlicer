@@ -6,6 +6,7 @@
         <img src="https://img.shields.io/github/license/ThatAquarel/CraftSlicer" alt="licence MIT"/>
 </a>
 </p>
+
 CraftSlicer is a pure python application to import 3D objects into your Minecraft world. Models and scans in the .stl
 format can be converted into blocks, and then colored using reference images. At the press of a button, they can open in
 your game directly, or be converted into a format compatible with
