@@ -3,7 +3,7 @@ import sys
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 
-from core.mc.palette_list import palette_list
+from craftslicer.core.mc.palette_list import palette_list
 
 
 class AssignBlocksDialog(QMessageBox):

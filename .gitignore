@@ -1,2 +1,4 @@
-/dist/
-/tests/
+dist/
+tests/
+build/
+CraftSlicer.egg-info/

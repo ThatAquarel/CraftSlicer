@@ -143,10 +143,13 @@ class MainWindow(QMainWindow):
         self.edit_toolbar.addAction(self.mirror_action)
 
 
-if __name__ == '__main__':
+def main():
     app = QApplication(sys.argv)
-
     app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt5'))
 
-    window = MainWindow()
+    MainWindow()
     app.exec_()
+
+
+if __name__ == '__main__':
+    main()

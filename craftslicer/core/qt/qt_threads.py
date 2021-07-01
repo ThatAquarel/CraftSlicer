@@ -1,10 +1,10 @@
 from PyQt5.QtCore import Qt, QRunnable, QThread
 from PyQt5.QtWidgets import *
 
-from core.gl.gl_elements import GlModel, GlImage, GlVoxel
-from core.mc.palette_list import palette_list
-from core.model_processor import convert_voxels, texture_voxels, assign_blocks, deploy_blocks
-from core.qt.qt_dialog import AssignBlocksDialog, DeployBlocksDialog
+from craftslicer.core.gl.gl_elements import GlModel, GlImage, GlVoxel
+from craftslicer.core.mc.palette_list import palette_list
+from craftslicer.core.model_processor import convert_voxels, texture_voxels, assign_blocks, deploy_blocks
+from craftslicer.core.qt.qt_dialog import AssignBlocksDialog, DeployBlocksDialog
 
 
 def get_run_options(gl_widget):

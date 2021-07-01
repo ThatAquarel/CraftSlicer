@@ -5,8 +5,8 @@ from OpenGL.GL import *
 # noinspection PyPackageRequirements
 from OpenGL.GL.shaders import compileProgram, compileShader
 
-from core.gl.gl_shaders import vertex_shader, fragment_shader
-from core.models import cube
+from craftslicer.core.gl.gl_shaders import vertex_shader, fragment_shader
+from craftslicer.core.models import cube
 
 
 def vector_to_vertex_index(vectors, dims=3):

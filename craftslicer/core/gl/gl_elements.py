@@ -4,7 +4,7 @@ import os
 import stl
 from PIL import Image
 
-from core.gl.gl_processor import *
+from craftslicer.core.gl.gl_processor import *
 
 
 class GlElement:

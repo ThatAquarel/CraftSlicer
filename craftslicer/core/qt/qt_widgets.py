@@ -3,8 +3,8 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 
 # noinspection PyUnresolvedReferences
-from core.res import qrc_resources
-from core.qt.qt_threads import get_run_options
+from craftslicer.core.res import qrc_resources
+from craftslicer.core.qt.qt_threads import get_run_options
 
 
 class ExpandConstraint(QWidget):

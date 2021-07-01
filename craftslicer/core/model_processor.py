@@ -15,9 +15,9 @@ from nbt.nbt import NBTFile, \
     TAG_COMPOUND
 from trimesh import remesh
 
-from core.gl.gl_elements import GlModel, GlGrid, GlVoxel, GlImage
-from core.gl.gl_processor import position_matrix
-from core.net.socket import send
+from craftslicer.core.gl.gl_elements import GlModel, GlGrid, GlVoxel, GlImage
+from craftslicer.core.gl.gl_processor import position_matrix
+from craftslicer.core.net.socket import send
 
 
 def convert_voxels(models: list[GlModel], grid: GlGrid):
@@ -213,7 +213,7 @@ def deploy_blocks(voxels: np.ndarray, flattened_blocks: np.ndarray, user_info: d
 if __name__ == '__main__':
     voxels_ = np.load("../tests/voxels.npy")
     # colors_ = np.load("../tests/voxel_color.npy")
-    # from core.mc.one_dot_sixteen.one_dot_sixteen import palette as palette_
+    # from craftslicer.core.mc.one_dot_sixteen.one_dot_sixteen import palette as palette_
 
     # flattened_blocks_ = assign_blocks(voxels_, colors_, palette_)
     # np.save("../tests/flattened_blocks_.npy", flattened_blocks_)

@@ -1,5 +1,5 @@
 import sys
-
+import os
 import numpy as np
 import pyrr.matrix44
 # noinspection PyPackageRequirements
@@ -9,14 +9,14 @@ from PyQt5.QtGui import *
 from PyQt5.QtOpenGL import *
 from PyQt5.QtWidgets import *
 # noinspection PyUnresolvedReferences
-from core.res import qrc_resources
+from craftslicer.core.res import qrc_resources
 
-from core.gl.gl_elements import GlModel, GlImage, GlVoxel, GlGrid
-from core.gl.gl_processor import display_setup
-from core.qt.qt_threads import get_run_options, ImportRunnable
+from craftslicer.core.gl.gl_elements import GlModel, GlImage, GlVoxel, GlGrid
+from craftslicer.core.gl.gl_processor import display_setup
+from craftslicer.core.qt.qt_threads import get_run_options, ImportRunnable
 
 
-# from core.qt.qt_threads import \
+# from craftslicer.core.qt.qt_threads import \
 #     ImportRunnable, \
 #     ConvertVoxelsRunnable, \
 #     TextureVoxelsRunnable, \
@@ -65,11 +65,14 @@ class GlWidget(QGLWidget):
         self.images: list[GlImage] = []
         self.voxels: list[GlVoxel] = []
 
-        # self.models.append(GlModel(full_path(__file__, "models/statue.stl"), self))
-        self.models.append(GlModel("C:\\Users\\xia_t\\Desktop\\Main Folder\\CraftSlicer\\models\\statue.stl", self))
+        def full_path(rel_path):
+            return os.path.join(os.path.dirname(__file__), rel_path)
+
+        self.models.append(GlModel(full_path("../res/3d/statue.stl"), self))
+        # self.models.append(GlModel("craftslicer/core/res/3d/statue.stl", self))
         self.grid = GlGrid(self)
-        # self.images.append(GlImage(full_path(__file__, "models/statue.png"), self))
-        self.images.append(GlImage("C:\\Users\\xia_t\\Desktop\\Main Folder\\CraftSlicer\\models\\statue.png", self))
+        self.images.append(GlImage(full_path("../res/3d/statue.png"), self))
+        # self.images.append(GlImage("core/res/3d/statue.png", self))
 
         self.setAcceptDrops(True)
         self.thread_pool = QThreadPool.globalInstance()

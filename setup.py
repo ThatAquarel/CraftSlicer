@@ -1,73 +1,38 @@
-import os
-from os.path import expanduser
-import shutil
-from distutils.core import setup
+import pathlib
+import craftslicer
+from setuptools import setup, find_packages
 
-# noinspection PyUnresolvedReferences
-import py2exe
+directory = pathlib.Path(__file__).parent
+readme = (directory / "README.md").read_text()
+requirements = [i.replace("\n", "") for i in open("requirements.txt", "r").readlines()]
 
-
-def delete_dir(path):
-    for filename in os.listdir(path):
-        file_path = os.path.join(path, filename)
-        try:
-            if os.path.isfile(file_path) or os.path.islink(file_path):
-                os.unlink(file_path)
-            elif os.path.isdir(file_path):
-                shutil.rmtree(file_path)
-        except OSError:
-            pass
-
-
-def copy_dir(src, dst, symlinks=False, ignore=None):
-    for item in os.listdir(src):
-        s = os.path.join(src, item)
-        d = os.path.join(dst, item)
-        if os.path.isdir(s):
-            shutil.copytree(s, d, symlinks, ignore)
-        else:
-            shutil.copy2(s, d)
-
-
-includes = [
-    "PyQt5.sip",
-    "PyQt5",
-    "PyQt5.QtCore",
-    "PyQt5.QtGui",
-    "PyQt5.QtWidgets",
-    "numpy",
-    "pyrr",
-    "PIL",
-    "trimesh",
-    "nbt",
-    "qdarkstyle",
-    "core",
-    "ctypes",
-    "logging"
-]
-
-datafiles = [
-    ("platforms", [expanduser(
-        "~\\anaconda3\\envs\\CraftSlicer\\Lib\\site-packages\\PyQt5\\Qt5\\plugins\\platforms\\qwindows.dll")]),
-    ("", [r"C:\windows\syswow64\MSVCP100.dll", r"C:\windows\syswow64\MSVCR100.dll"])
-]
-
-dist_path = os.path.join(os.path.dirname(__file__), ".\\dist\\")
-
-delete_dir(dist_path)
 setup(
     name="CraftSlicer",
-    version="0.1",
-    console=[{"script": "craftslicer_v2.py"}],
-    data_files=datafiles,
-    options={
-        "py2exe": {
-            "includes": includes,
-            "excludes": ["OpenGL"],
-        }
+    version=craftslicer.__version__,
+    description="A portal from reality to Minecraft",
+    long_description=readme,
+    long_description_content_type="text/markdown",
+    url="https://github.com/ThatAquarel/CraftSlicer",
+    author="Aquarel",
+    author_email="flyingrobot910@gmail.com",
+    license="MIT",
+    classifiers=[
+        "Development Status :: 4 - Beta",
+        "Environment :: Win32 (MS Windows)",
+        "Intended Audience :: End Users/Desktop",
+        "License :: OSI Approved :: MIT License",
+        "Natural Language :: English",
+        "Programming Language :: Python :: 3 :: Only",
+        "Programming Language :: Python :: 3.9",
+        "Operating System :: OS Independent",
+        "Topic :: Games/Entertainment"
+    ],
+    packages=find_packages(),
+    include_package_data=True,
+    install_requires=requirements,
+    entry_points={
+        "console_scripts": [
+            "craftslicer=craftslicer.__main__:main",
+        ]
     }
 )
-
-opengl_path = os.path.join(dist_path, ".\\OpenGL\\")
-os.mkdir(opengl_path)
-copy_dir(expanduser("~\\anaconda3\\envs\\CraftSlicer\\Lib\\site-packages\\OpenGL\\"), opengl_path)
