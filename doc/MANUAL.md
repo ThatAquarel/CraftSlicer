@@ -13,10 +13,12 @@ Upon startup, the following interface will be shown. A model of the Statue of Li
 model, which will be used to complete this tutorial.
 ![Complete Gui](manual/full.png)
 
+The rectangle highlights the different Gui Elements.
+
 ### Render
 
-The render panel, highlighted previews the model, the reference images, and the generated blocks. Use the following
-controls to move around the camera:
+The render panel previews the model, the reference images, and the generated blocks. Use the following controls to move
+around the camera:
 
 |Control|Function|
 |-------|--------|
@@ -71,20 +73,21 @@ button to run the selected option. Here are the functions of the five different 
 |Convert Voxels|Uses the Models listed in the [Scene Collection](#Scene-Collection) to generate blocks and their positions. A new Voxel object is created, without colors. The blocks are previewed in the [Render](#Render).|
 |Texture Voxels|This option depends on the Convert Voxels step. Uses the Textures listed in the [Scene Collection](#Scene-Collection) to color the previously generated blocks. The colors are displayed the in [Render](#Render) and updated for the Voxel object.
 |Assign Blocks|This option depends on the Texture Voxels step. A dialog will be shown to select the current Minecraft version. The available blocks of this version are assigned to the colors of the Voxel object. No preview is shown in the [Render](#Render).
-|Deploy|This option depends on the Assign Blocks step. A dialog will be shown to enter the author and the project's name. A file compatible with the [Litematica mod](https://github.com/maruohon/litematic) is generated and saved. and sent to the Minecraft Client directly if  the [CraftSlicer Litematica mod](https://github.com/ThatAquarel/litematica/releases/) is installed.
+|Deploy|This option depends on the Assign Blocks step. A dialog will be shown to enter the author and the project's name. A file compatible with the [Litematica mod](https://github.com/maruohon/litematic) is generated and sent to the Minecraft Client directly if  the [CraftSlicer Litematica mod](https://github.com/ThatAquarel/litematica/releases/) is installed.
 
 ![Run Options](manual/run_options.png)
 
 ## Performance
 
-The CraftSlicer app's focus is not performance, though some optimizations accelerates it. The different [Run Options](#Run-Options) of the default model runs at
-these speeds on the development machine:
+CraftSlicer does not focus on performance, though it is accelerated by some optimizations. The
+different [Run Options](#Run-Options) of the default model runs at these speeds on the development machine:
 
 |Option|Speed|
 |------|-----|
-|Convert Voxels|0.899 seconds|
-|Texture Voxels|2.910 seconds|
-|Assign Blocks|7.123 seconds|
-|Deploy|0.658 seconds|
+|Convert Voxels|~0.899 seconds|
+|Texture Voxels|~2.910 seconds|
+|Assign Blocks|~7.123 seconds|
+|Deploy|~0.658 seconds|
 
-Note that different machines and models may cause large variations in the processing speed. These values should only be used as a reference.
+Note that different machines and models may cause large variations in the processing speed. These values should only be
+used as a reference.
