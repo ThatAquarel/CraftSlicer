@@ -2,3 +2,4 @@ dist/
 tests/
 build/
 CraftSlicer.egg-info/
+*.psd
