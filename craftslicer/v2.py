@@ -5,10 +5,10 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 
-from core.gl.gl_widget import GlWidget
-from core.qt.qt_widgets import PropertiesEdit, ExpandConstraint, SeparatorLine, RunWidget
+from craftslicer.core.gl.gl_widget import GlWidget
+from craftslicer.core.qt.qt_widgets import PropertiesEdit, ExpandConstraint, SeparatorLine, RunWidget
 # noinspection PyUnresolvedReferences
-from core.res import qrc_resources
+from craftslicer.core.res import qrc_resources
 
 
 class MainWindow(QMainWindow):
