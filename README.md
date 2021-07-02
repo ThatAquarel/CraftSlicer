@@ -38,9 +38,8 @@ a [Fabric](https://fabricmc.net/) mod for 1.16.4 and 1.16.5.
 
 ## Documentation
 
-If you are unsure about the usage of CraftSlicer after installing, refer to these links:
+If you are unsure about the usage of CraftSlicer after installing, refer to this link:
 
 |Index          |Link                                                                                              |
 |---------------|--------------------------------------------------------------------------------------------------|
 |App user manual| [CraftSlicer/doc/MANUAL.md](https://github.com/ThatAquarel/CraftSlicer/blob/master/doc/MANUAL.md)|
-|Api usage      | [CraftSlicer/doc/API.md](https://github.com/ThatAquarel/CraftSlicer/blob/master/doc/API.md)      |
