@@ -16,6 +16,7 @@ def obj_to_gl_model(gl_widget, file: str):
 
     packed_data = np.array(material.vertices).reshape((-1, 8))
     vectors = packed_data[:, 5:8]
+    vectors = vectors[:, [0, 2, 1]]
     vectors = vectors.reshape((-1, 3, 3))
 
     uv_map = packed_data[:, 0:2]
@@ -32,12 +33,11 @@ def obj_to_gl_model(gl_widget, file: str):
     x, y = np.array([x, y], dtype=int)
     vertex_color = texture_image[:, :, [0, 1, 2]][x, y]
 
-    # texture_image_ = np.zeros(texture_image.shape, dtype=np.uint8)
-    texture_image_ = texture_image.copy()
-    texture_image_ = texture_image_[:, :, [0, 1, 2]]
-    texture_image_[x, y] = [255, 0, 0]
-    image = Image.fromarray(texture_image_)
-    image.save("C:\\Users\\xia_t\\Desktop\\test.png")
+    # texture_image_ = texture_image.copy()
+    # texture_image_ = texture_image_[:, :, [0, 1, 2]]
+    # texture_image_[x, y] = [255, 0, 0]
+    # image = Image.fromarray(texture_image_)
+    # image.save("C:\\Users\\xia_t\\Desktop\\test.png")
 
     return GlModel(gl_widget, file=file, vectors=vectors, vertex_color=vertex_color)
 
