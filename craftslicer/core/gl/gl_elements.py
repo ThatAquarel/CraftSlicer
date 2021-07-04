@@ -61,15 +61,24 @@ class GlElementSimple(GlElement):
 
 
 class GlModel(GlElement):
-    def __init__(self, file, widget):
+    def __init__(self, widget, file=None, vectors=None, vertex_color=None):
         super(GlModel, self).__init__(widget)
 
-        self.file = file
-        self.filename = os.path.basename(self.file)
-        self.model_mesh = stl.mesh.Mesh.from_file(file)
+        self.vectors = vectors
 
-        self.face_vertices, self.line_vertices, self.vertices, self.indices = vector_gl(self.model_mesh.vectors)
+        if file is not None:
+            self.file = file
+            self.filename = os.path.basename(self.file)
+
+        if self.vectors is None:
+            self.model_mesh = stl.mesh.Mesh.from_file(file)
+
+            self.vectors = self.model_mesh.vectors
+        self.face_vertices, self.line_vertices, self.vertices, self.indices = vector_gl(self.vectors)
+
         self.maxes = np.amax(self.vertices, axis=0)
+
+        self.vertex_color = vertex_color
 
 
 class GlVoxel(GlElement):

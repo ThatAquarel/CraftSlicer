@@ -14,7 +14,7 @@ from craftslicer.core.res import qrc_resources
 from craftslicer.core.gl.gl_elements import GlModel, GlImage, GlVoxel, GlGrid
 from craftslicer.core.gl.gl_processor import display_setup
 from craftslicer.core.qt.qt_threads import get_run_options, ImportRunnable
-
+from craftslicer.core.config import SUPPORTED_FILE_TYPES
 
 # from craftslicer.core.qt.qt_threads import \
 #     ImportRunnable, \
@@ -68,7 +68,7 @@ class GlWidget(QGLWidget):
         def full_path(rel_path):
             return os.path.join(os.path.dirname(__file__), rel_path)
 
-        self.models.append(GlModel(full_path("../res/3d/statue.stl"), self))
+        self.models.append(GlModel(self, file=full_path("../res/3d/statue.stl")))
         # self.models.append(GlModel("craftslicer/core/res/3d/statue.stl", self))
         self.grid = GlGrid(self)
         self.images.append(GlImage(full_path("../res/3d/statue.png"), self))
@@ -155,7 +155,7 @@ class GlWidget(QGLWidget):
     def dragEnterEvent(self, e):
         if e.mimeData().hasText():
             files = [file.toLocalFile() for file in e.mimeData().urls() if
-                     file.toLocalFile().split(".")[1].upper() in ["STL", "PNG", "JPG"]]
+                     file.toLocalFile().split(".")[1].upper() in SUPPORTED_FILE_TYPES]
             if files:
                 e.accept()
                 return

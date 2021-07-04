@@ -1,6 +1,8 @@
 from PyQt5.QtCore import Qt, QRunnable, QThread
 from PyQt5.QtWidgets import *
 
+from craftslicer.core.config import SUPPORTED_FILE_TYPES
+from craftslicer.core.format_processor import obj_to_gl_model, vertex_color_to_voxel_color
 from craftslicer.core.gl.gl_elements import GlModel, GlImage, GlVoxel
 from craftslicer.core.mc.palette_list import palette_list
 from craftslicer.core.model_processor import convert_voxels, texture_voxels, assign_blocks, deploy_blocks
@@ -49,7 +51,7 @@ class Runnable(QRunnable):
 class ImportRunnable(Runnable):
     def __init__(self, gl_widget, files):
         files = [file.toLocalFile() for file in files if
-                 file.toLocalFile().split(".")[1].upper() in ["STL", "PNG", "JPG"]]
+                 file.toLocalFile().split(".")[1].upper() in SUPPORTED_FILE_TYPES]
         if not files:
             return
 
@@ -64,10 +66,12 @@ class ImportRunnable(Runnable):
                 self.gl_widget.buffer_mutex.lock()
 
                 for file in self.files:
-                    if file.split(".")[1].upper() in ["STL"]:
-                        self.gl_widget.model_buffer.append(GlModel(file, self.gl_widget))
-                    elif file.split(".")[1].upper() in ["PNG", "JPG"]:
+                    if (filename := file.split(".")[1].upper()) in ["STL"]:
+                        self.gl_widget.model_buffer.append(GlModel(self.gl_widget, file=file))
+                    elif filename in ["PNG", "JPG"]:
                         self.gl_widget.image_buffer.append(GlImage(file, self.gl_widget))
+                    elif filename in ["OBJ"]:
+                        self.gl_widget.model_buffer.append(obj_to_gl_model(self.gl_widget, file=file))
 
                 self.gl_widget.buffer_mutex.unlock()
 
@@ -159,8 +163,16 @@ class TextureVoxelsRunnable(Runnable):
                 if not self.gl_widget.voxels:
                     return
 
-                voxel_color = texture_voxels(self.gl_widget.voxels[0], self.gl_widget.images)
+                gl_model = None
+                for model in self.gl_widget.models:
+                    if model.vertex_color is not None:
+                        gl_model = model
+
                 voxels = self.gl_widget.voxels[0].voxels
+                if gl_model is not None:
+                    voxel_color = vertex_color_to_voxel_color(voxels=voxels, gl_model=gl_model)
+                else:
+                    voxel_color = texture_voxels(self.gl_widget.voxels[0], self.gl_widget.images)
 
                 self.gl_widget.buffer_mutex.lock()
                 self.gl_widget.voxels = []

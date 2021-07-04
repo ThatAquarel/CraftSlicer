@@ -8,3 +8,4 @@ trimesh
 qdarkstyle
 setuptools
 PyOpenGl
+PyWavefront
