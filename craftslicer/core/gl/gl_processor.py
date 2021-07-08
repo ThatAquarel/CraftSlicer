@@ -99,7 +99,7 @@ def voxel_gl(voxels, maxes, voxel_color: np.ndarray = None):
     voxel_indices = np.repeat(voxel_indices, 36, axis=0)
     vectors = vectors + voxel_indices
 
-    np.save("C:\\Users\\xia_t\\Desktop\\Main Folder\\CraftSlicer\\tests\\vectors.npy", vectors)
+    # np.save("C:\\Users\\xia_t\\Desktop\\Main Folder\\CraftSlicer\\tests\\vectors.npy", vectors)
 
     vertices, indices = vector_to_vertex_index(vectors)
     vertices, indices = np.array(vertices).reshape((-1, 3)), np.array(indices)
