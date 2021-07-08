@@ -79,6 +79,9 @@ def vertex_color_to_voxel_color(voxels: np.ndarray, gl_model: GlModel):
     voxel_color = np.zeros((*voxels.shape, 3), dtype=int)
     voxel_color[vectors[:, 0], vectors[:, 1], vectors[:, 2]] = vertex_color[indices]
 
+    np.save("C:\\Users\\xia_t\\Desktop\\Main Folder\\CraftSlicer\\tests\\voxels.npy", voxels)
+    np.save("C:\\Users\\xia_t\\Desktop\\Main Folder\\CraftSlicer\\tests\\voxel_color.npy", voxel_color)
+
     return voxel_color
 
 

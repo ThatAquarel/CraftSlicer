@@ -176,8 +176,14 @@ class TextureVoxelsRunnable(Runnable):
 
                 self.gl_widget.buffer_mutex.lock()
                 self.gl_widget.voxels = []
-                self.gl_widget.voxel_buffer.append(GlVoxel(voxels, self.gl_widget, voxel_color=voxel_color))
+                self.gl_widget.voxel_buffer.append(gl_voxel := GlVoxel(voxels, self.gl_widget, voxel_color=voxel_color))
                 self.gl_widget.buffer_mutex.unlock()
+
+                import numpy as np
+                np.save("C:\\Users\\xia_t\\Desktop\\Main Folder\\CraftSlicer\\tests\\vertices.npy",
+                        gl_voxel.face_vertices)
+                np.save("C:\\Users\\xia_t\\Desktop\\Main Folder\\CraftSlicer\\tests\\indices.npy",
+                        gl_voxel.indices)
 
         super(TextureVoxelsRunnable, self).__init__(Thread, [gl_widget], "Texturing voxels", 0)
 
