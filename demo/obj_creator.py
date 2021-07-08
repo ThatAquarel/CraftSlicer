@@ -72,15 +72,17 @@ def create_uv_map(vertex_color: np.ndarray):
     palette, color_indices = np.unique(vertex_color, axis=0, return_inverse=True)
     palette *= 255
     palette = palette.astype(int)
-    palette_indices = np.arange(0, palette.shape[0])
-    palette_x, palette_y = np.divmod(palette_indices, 1024)
+    palette_indices = np.arange(0, length := palette.shape[0])
 
-    texture_map = np.zeros((1024, 1024, 3), dtype=np.uint8)
+    resolution = 2 ** int(np.ceil(np.log2(np.sqrt(length))))
+    palette_x, palette_y = np.divmod(palette_indices, resolution)
+
+    texture_map = np.zeros((resolution, resolution, 3), dtype=np.uint8)
     texture_map[palette_x, palette_y] = palette
     image = Image.fromarray(texture_map)
     image.save("vertices.png")
 
-    return palette_y.astype(float) / 1024, 1 - palette_x.astype(float) / 1024, color_indices
+    return palette_y.astype(float) / resolution, 1 - palette_x.astype(float) / resolution, color_indices
 
 
 if __name__ == '__main__':
