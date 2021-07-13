@@ -50,6 +50,7 @@ def write_obj():
     for vertex in vertices:
         obj_file.write("v %.6f %.6f %.6f\n" % tuple(vertex))
 
+    vertex_color[np.where((vertex_color < (25 / 255)).all(axis=1))[0]] = [164 / 255, 143 / 255, 121 / 255]
     u, v, color_indices = create_uv_map(vertex_color)
     for uv in np.concatenate((u[:, None], v[:, None]), axis=1):
         obj_file.write("vt %.6f %.6f\n" % tuple(uv))
