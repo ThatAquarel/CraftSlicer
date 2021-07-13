@@ -11,23 +11,32 @@ directions = np.array([
 ])
 
 cube_faces = np.array([
-    [0, 2, 3, 0, 1, 3],
-    [4, 6, 7, 4, 5, 7],
-    [0, 4, 5, 0, 1, 5],
-    [2, 6, 7, 2, 3, 7],
-    [0, 2, 4, 2, 4, 6],
-    [1, 3, 5, 3, 5, 7]
+    [0, 2, 3, 0, 1, 3],  # right
+    [4, 6, 7, 4, 5, 7],  # left
+    [0, 4, 5, 0, 1, 5],  # front
+    [2, 6, 7, 2, 3, 7],  # back
+    [0, 2, 4, 2, 4, 6],  # bottom
+    [1, 3, 5, 3, 5, 7],  # top
 ])
 
 cube_vertices = np.array([
-    [0, 0, 0],
-    [0, 0, 1],
-    [0, 1, 0],
-    [0, 1, 1],
-    [1, 0, 0],
-    [1, 0, 1],
-    [1, 1, 0],
-    [1, 1, 1]
+    [0, 0, 0],  # 0
+    [0, 0, 1],  # 1
+    [0, 1, 0],  # 2
+    [0, 1, 1],  # 3
+    [1, 0, 0],  # 4
+    [1, 0, 1],  # 5
+    [1, 1, 0],  # 6
+    [1, 1, 1],  # 7
+])
+
+cube_normals = np.array([
+    [1, 2],  # right
+    [1, 2],  # left
+    [3, 4],  # front
+    [3, 4],  # back
+    [5, 6],  # bottom
+    [5, 6],  # top
 ])
 
 mtl_content = """
@@ -50,7 +59,6 @@ vn 0.000000 0.000000 -1.000000
 vn 0.000000 0.000000 1.000000
 vn 0.000000 1.000000 0.000000
 vn 0.000000 -1.000000 0.000000
-vn 0.000000 0.000000 1.000000
 
 o default
 usemtl vertices
@@ -71,7 +79,7 @@ def write_obj():
     voxels = np.load("voxels.npy")
     voxel_color = np.load("voxel_color.npy")
 
-    vertices, vertex_color = create_vertices_vertex_color(voxels, voxel_color)
+    vertices, vertex_color, vertex_normals = create_vertices_vertex_color(voxels, voxel_color)
 
     vertex_indices = np.arange(vertices.shape[0]).reshape((-1, 3)) + 1
 
@@ -92,10 +100,10 @@ def write_obj():
     color_indices = color_indices.reshape((-1, 3))
     color_indices += 1
 
-    faces = np.hstack((vertex_indices, color_indices))[:, [0, 3, 1, 4, 2, 5]]
+    faces = np.hstack((vertex_indices, color_indices, vertex_normals))[:, [0, 3, 6, 1, 4, 7, 2, 5, 8]]
 
     for i, face in enumerate(faces):
-        obj_file.write("f %i/%i %i/%i %i/%i\n" % tuple(face))
+        obj_file.write("f %i/%i/%i %i/%i/%i %i/%i/%i\n" % tuple(face))
     obj_file.close()
 
 
@@ -117,7 +125,7 @@ def create_uv_map(vertex_color: np.ndarray):
 
 
 def create_vertices_vertex_color(voxels: np.ndarray, voxel_color: np.ndarray):
-    global directions, cube_faces, cube_vertices
+    global directions, cube_faces, cube_vertices, cube_normals
 
     selected_blocks = np.argwhere(voxels == 1)
     selected_blocks_ = selected_blocks.copy()
@@ -141,13 +149,14 @@ def create_vertices_vertex_color(voxels: np.ndarray, voxel_color: np.ndarray):
     selected_blocks_ = selected_blocks_[voxels_faces_color_indices]
     selected_blocks_ = np.repeat(selected_blocks_, 6, axis=0)
     vertices += selected_blocks_
+    vertices = vertices[:, [0, 2, 1]]
 
     vertex_color = np.repeat(voxels_faces_color, 6, axis=0)
     vertex_color = vertex_color.astype(float) / 255
 
-    vertices = vertices[:, [0, 2, 1]]
+    vertex_normals = np.repeat(cube_normals[voxels_faces_indices].flatten(), 3).reshape((-1, 3))
 
-    return vertices, vertex_color
+    return vertices, vertex_color, vertex_normals
 
 
 if __name__ == '__main__':
