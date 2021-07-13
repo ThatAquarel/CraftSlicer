@@ -1,6 +1,35 @@
 import numpy as np
 from PIL import Image
 
+directions = np.array([
+    [-1, 0, 0],
+    [1, 0, 0],
+    [0, -1, 0],
+    [0, 1, 0],
+    [0, 0, -1],
+    [0, 0, 1]
+])
+
+cube_faces = np.array([
+    [0, 2, 3, 0, 1, 3],
+    [4, 6, 7, 4, 5, 7],
+    [0, 4, 5, 0, 1, 5],
+    [2, 6, 7, 2, 3, 7],
+    [0, 2, 4, 2, 4, 6],
+    [1, 3, 5, 3, 5, 7]
+])
+
+cube_vertices = np.array([
+    [0, 0, 0],
+    [0, 0, 1],
+    [0, 1, 0],
+    [0, 1, 1],
+    [1, 0, 0],
+    [1, 0, 1],
+    [1, 1, 0],
+    [1, 1, 1]
+])
+
 mtl_content = """
 newmtl vertices
 Ns 0.000000
@@ -39,8 +68,11 @@ def write_mtl():
 
 
 def write_obj():
-    vertices = np.load("vertices.npy")
-    vertices, vertex_color = vertices[:, [0, 2, 1]], vertices[:, [3, 4, 5]]
+    voxels = np.load("voxels.npy")
+    voxel_color = np.load("voxel_color.npy")
+
+    vertices, vertex_color = create_vertices_vertex_color(voxels, voxel_color)
+
     vertex_indices = np.arange(vertices.shape[0]).reshape((-1, 3)) + 1
 
     obj_file = open("vertices.obj", "w+")
@@ -57,15 +89,13 @@ def write_obj():
 
     obj_file.write(obj_content)
 
-    vertex_normals = np.repeat([1, 2, 1, 2, 3, 4, 5, 6, 3, 7, 5, 6], 3)
-    vertex_normals = np.tile(vertex_normals, reps=vertex_indices.shape[0] // 12).reshape((-1, 3))
     color_indices = color_indices.reshape((-1, 3))
     color_indices += 1
 
-    faces = np.hstack((vertex_indices, color_indices, vertex_normals))[:, [0, 3, 6, 1, 4, 7, 2, 5, 8]]
+    faces = np.hstack((vertex_indices, color_indices))[:, [0, 3, 1, 4, 2, 5]]
 
     for i, face in enumerate(faces):
-        obj_file.write("f %i/%i/%i %i/%i/%i %i/%i/%i\n" % tuple(face))
+        obj_file.write("f %i/%i %i/%i %i/%i\n" % tuple(face))
     obj_file.close()
 
 
@@ -84,6 +114,40 @@ def create_uv_map(vertex_color: np.ndarray):
     image.save("vertices.png")
 
     return palette_y.astype(float) / resolution, 1 - palette_x.astype(float) / resolution, color_indices
+
+
+def create_vertices_vertex_color(voxels: np.ndarray, voxel_color: np.ndarray):
+    global directions, cube_faces, cube_vertices
+
+    selected_blocks = np.argwhere(voxels == 1)
+    selected_blocks_ = selected_blocks.copy()
+    selected_colors = voxel_color[selected_blocks[:, 0], selected_blocks[:, 1], selected_blocks[:, 2]]
+
+    selected_blocks = np.repeat(selected_blocks, 6, axis=0)
+    directions = np.tile(directions, (selected_blocks.shape[0] // 6, 1))
+    selected_blocks += directions
+
+    selected_directions = voxels[selected_blocks[:, 0], selected_blocks[:, 1], selected_blocks[:, 2]].astype(bool)
+    selected_directions = np.invert(selected_directions)
+    selected_directions = np.argwhere(selected_directions.reshape((-1, 6)))
+
+    voxels_faces_indices = (c := selected_directions.flatten())[1::2]
+    voxels_faces_color_indices = c[::2]
+
+    voxels_faces = cube_faces[voxels_faces_indices]
+    voxels_faces_color = selected_colors[voxels_faces_color_indices]
+
+    vertices = cube_vertices[voxels_faces].reshape((-1, 3))
+    selected_blocks_ = selected_blocks_[voxels_faces_color_indices]
+    selected_blocks_ = np.repeat(selected_blocks_, 6, axis=0)
+    vertices += selected_blocks_
+
+    vertex_color = np.repeat(voxels_faces_color, 6, axis=0)
+    vertex_color = vertex_color.astype(float) / 255
+
+    vertices = vertices[:, [0, 2, 1]]
+
+    return vertices, vertex_color
 
 
 if __name__ == '__main__':
