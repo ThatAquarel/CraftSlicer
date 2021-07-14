@@ -150,6 +150,9 @@ def create_vertices_vertex_color(voxels: np.ndarray, voxel_color: np.ndarray):
     selected_blocks_ = np.repeat(selected_blocks_, 6, axis=0)
     vertices += selected_blocks_
     vertices = vertices[:, [0, 2, 1]]
+    vertices_maxes = np.amax(vertices, axis=0)
+    vertices = vertices.astype(float)
+    vertices -= vertices_maxes / 2
 
     vertex_color = np.repeat(voxels_faces_color, 6, axis=0)
     vertex_color = vertex_color.astype(float) / 255
