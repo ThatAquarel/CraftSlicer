@@ -14,7 +14,7 @@ the [Litematica mod](https://github.com/maruohon/litematic).
 
 ## Demo
 
-Insert video here
+[![Demo video](https://img.youtube.com/vi/6yEyLwJS5qY/maxresdefault.jpg)](https://youtu.be/6yEyLwJS5qY)
 
 ## Installation
 
