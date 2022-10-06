@@ -1,5 +1,7 @@
+.idea/
 dist/
 tests/
 build/
 CraftSlicer.egg-info/
 *.psd
+*.pyc
